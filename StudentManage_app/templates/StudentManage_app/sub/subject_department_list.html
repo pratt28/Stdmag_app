@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <a href="{% url 'subject_list' %}"
+               class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                All Departments
+            </a>
+
+            <h1 class="page-title mt-2">
+                {{ department.name }} Subjects
+            </h1>
+        </div>
+
+        <a href="{% url 'subject_create' %}"
+           class="btn btn-add text-white">
+
+            <i class="fas fa-plus"></i>
+            Add Subject
+
+        </a>
+
+    </div>
+
+    {% for group in grouped_data %}
+
+    <div class="card subject-card mb-4">
+
+        <div class="subject-header d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h4 class="mb-1">
+                    {{ group.year|default:"Year not set" }}
+                </h4>
+
+                <small>
+                    {{ group.semester|default:"Semester not set" }}
+                </small>
+
+            </div>
+
+            <span class="badge bg-light text-dark fs-6">
+                {{ group.subjects|length }} Subjects
+            </span>
+
+        </div>
+
+        <div class="card-body">
+
+            <table class="table subject-table align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Subject Name</th>
+                        <th>Code</th>
+                        <th>Credits</th>
+                        <th width="220">Actions</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for subject in group.subjects %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ subject.subject_name }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            <span class="code-badge">
+                                {{ subject.subject_code }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="badge bg-primary">
+                                {{ subject.credits }} Credits
+                            </span>
+                        </td>
+
+                        <td>
+
+                            <a href="{% url 'subject_update' subject.id %}"
+                               class="btn btn-edit btn-sm">
+
+                                <i class="fas fa-pen"></i>
+                                Edit
+
+                            </a>
+
+                            <a href="{% url 'subject_delete' subject.id %}"
+                               class="btn btn-delete btn-sm">
+
+                                <i class="fas fa-trash"></i>
+                                Delete
+
+                            </a>
+
+                        </td>
+
+                        <td>
+                            <a href="{% url 'subject_detail' subject.id %}"
+                               class="btn btn-info btn-sm">
+
+                                <i class="fas fa-eye"></i>
+                                View
+
+                            </a>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                    <tr class="table-primary">
+
+                        <td colspan="2"></td>
+
+                        <td>
+                            <strong>
+                                Total Semester Credits:
+                            </strong>
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ group.total_credits }}
+                            </strong>
+                        </td>
+
+                        <td></td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    {% empty %}
+
+    <div class="empty-state">
+        <i class="fas fa-book-open"></i>
+        <h4>No subjects found</h4>
+        <p>Add a subject for {{ department.name }} to see it here.</p>
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

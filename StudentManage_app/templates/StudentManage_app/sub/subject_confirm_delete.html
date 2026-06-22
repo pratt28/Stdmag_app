@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Delete Subject</h2>
+
+<p>
+    Are you sure you want to delete
+    "{{ subject.subject_name }}"?
+</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Delete</button>
+</form>
+
+{% endblock %}

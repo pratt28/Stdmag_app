@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid dashboard-page">
+
+    <div class="dashboard-hero">
+        <div>
+            <span class="dashboard-kicker">Overview</span>
+            <h1>Student Management Dashboard</h1>
+            <p>Track students, departments, subjects, and academic activity from one place.</p>
+        </div>
+
+        <div class="dashboard-actions">
+            <a href="{% url 'add_student' %}" class="btn dashboard-action-primary">
+                <i class="fas fa-user-plus"></i>
+                Add Student
+            </a>
+            <a href="{% url 'subject_create' %}" class="btn dashboard-action-secondary">
+                <i class="fas fa-book-medical"></i>
+                Add Subject
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 dashboard-stats">
+
+        <div class="col-xl-3 col-md-6">
+            <a href="{% url 'student_list' %}" class="dashboard-stat-card stat-blue">
+                <div class="stat-icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div>
+                    <span>Total Students</span>
+                    <strong>{{ total_students }}</strong>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <a href="{% url 'department_list' %}" class="dashboard-stat-card stat-green">
+                <div class="stat-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div>
+                    <span> Total Departments</span>
+                    <strong>{{ total_departments }}</strong>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <a href="{% url 'subject_list' %}" class="dashboard-stat-card stat-yellow">
+                <div class="stat-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div>
+                    <span>Subjects</span>
+                    <strong>{{ total_subjects }}</strong>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <a href="{% url 'teacher_list' %}" class="dashboard-stat-card stat-pink">
+                <div class="stat-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div>
+                    <span>Teachers</span>
+                    <strong>{{ total_teachers }}</strong>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <div class="row g-4 mt-1">
+
+        <div class="col-xl-8">
+            <div class="dashboard-panel">
+                <div class="panel-heading">
+                    <div>
+                        <h3>Student Growth</h3>
+                        <p>New student records by month</p>
+                    </div>
+                    <span class="panel-badge">{{ total_students }} Total</span>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="studentGrowthChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="dashboard-panel h-100">
+                <div class="panel-heading">
+                    <div>
+                        <h3>Quick Actions</h3>
+                        <p>Common management tasks</p>
+                    </div>
+                </div>
+
+                <div class="quick-action-grid">
+                    <a href="{% url 'add_student' %}">
+                        <i class="fas fa-user-plus"></i>
+                        New Student
+                    </a>
+                    <a href="{% url 'add_department' %}">
+                        <i class="fas fa-building-circle-plus"></i>
+                        Add Department
+                    </a>
+                    <a href="{% url 'subject_create' %}">
+                        <i class="fas fa-book-medical"></i>
+                        Add Subject
+                    </a>
+                    <a href="{% url 'attendance_list' %}">
+                        <i class="fas fa-calendar-check"></i>
+                        Add Attendance
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4 mt-1">
+
+        <div class="col-xl-4">
+            <div class="dashboard-panel h-100">
+                <div class="panel-heading">
+                    <div>
+                        <h3>Department Strength</h3>
+                        <p>Students across departments</p>
+                    </div>
+                </div>
+                <div class="chart-wrap chart-wrap-small">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="dashboard-panel h-100">
+                <div class="panel-heading">
+                    <div>
+                        <h3>Top Departments</h3>
+                        <p>By student records</p>
+                    </div>
+                    <a href="{% url 'department_list' %}" class="panel-link">View All</a>
+                </div>
+
+                <div class="department-list">
+                    {% for department in departments %}
+                    <a href="{% url 'department_detail' department.id %}" class="department-row">
+                        <div>
+                            <strong>{{ department.name }}</strong>
+                            <span>{{ department.subject_count }} Subjects</span>
+                        </div>
+                        <span>{{ department.student_count }} Students</span>
+                    </a>
+                    {% empty %}
+                    <div class="dashboard-empty">No departments found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="dashboard-panel h-100">
+                <div class="panel-heading">
+                    <div>
+                        <h3>Year Summary</h3>
+                        <p>Students by academic year</p>
+                    </div>
+                </div>
+
+                <div class="year-summary">
+                    {% for year in year_summary %}
+                    <a href="{% url 'student_list' %}?year={{ year.year|urlencode }}" class="year-row">
+                        <span>{{ year.year|default:"Not Set" }}</span>
+                        <strong>{{ year.count }}</strong>
+                    </a>
+                    {% empty %}
+                    <div class="dashboard-empty">No student year data found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="dashboard-panel mt-4">
+        <div class="panel-heading">
+            <div>
+                <h3>Recent Students</h3>
+                <p>Latest student records added to the system</p>
+            </div>
+            <a href="{% url 'student_list' %}" class="panel-link">View Students</a>
+        </div>
+
+        <div class="recent-student-grid">
+            {% for student in recent_students %}
+            <a href="{% url 'student_detail' student.id %}" class="recent-student-card">
+                <div class="student-avatar">
+                    {{ student.name|slice:":1" }}
+                </div>
+                <div>
+                    <strong>{{ student.name }}</strong>
+                    <span>{{ student.roll_no }} • {{ student.department }}</span>
+                </div>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+            {% empty %}
+            <div class="dashboard-empty">No students found.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const monthlyLabels = {{ monthly_labels|safe }};
+const monthlyData = {{ monthly_data|safe }};
+const departmentLabels = {{ department_labels|safe }};
+const departmentStudentData = {{ department_student_data|safe }};
+
+new Chart(document.getElementById('studentGrowthChart'), {
+    type: 'line',
+    data: {
+        labels: monthlyLabels,
+        datasets: [{
+            label: 'Students',
+            data: monthlyData,
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79,70,229,0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Department Chart
+new Chart(document.getElementById('departmentChart'), {
+    type: 'doughnut',
+    data: {
+        labels: departmentLabels,
+        datasets: [{
+            data: departmentStudentData,
+            backgroundColor: [
+                '#4f46e5',
+                '#10b981',
+                '#f59e0b',
+                '#ef4444',
+                '#8b5cf6',
+                '#06b6d4',
+                '#ec4899'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+
+{% endblock %}

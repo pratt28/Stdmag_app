@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card p-4">
+
+<h2>{{ student.name }}</h2>
+
+<hr>
+
+{% if student.photo %}
+
+<img
+src="{{ student.photo.url }}"
+height="200"
+width="200">
+
+{% endif %}
+
+<br><br>
+
+<p><strong>Roll No:</strong> {{ student.roll_no }}</p>
+
+<p><strong>Email:</strong> {{ student.email }}</p>
+
+<p><strong>Phone:</strong> {{ student.phone }}</p>
+
+<p><strong>Department:</strong> {{ student.department }}</p>
+
+<p><strong>Year:</strong> {{ student.year }}</p>
+
+<p><strong>Gender:</strong> {{ student.gender }}</p>
+
+<p><strong>DOB:</strong> {{ student.dob }}</p>
+
+<p><strong>Address:</strong> {{ student.address }}</p>
+
+</div>
+
+{% endblock %}

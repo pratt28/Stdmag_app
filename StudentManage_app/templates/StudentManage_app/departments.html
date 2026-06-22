@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="department-page">
+
+    <div class="department-hero">
+        <div>
+            <span class="department-kicker">Academic Structure</span>
+            <h1>Departments</h1>
+            <p>Manage department records, HOD details, and student strength.</p>
+        </div>
+
+        <a href="{% url 'add_department' %}" class="department-add-btn">
+            <i class="fas fa-plus"></i>
+            Add Department
+        </a>
+    </div>
+
+    <div class="department-summary-grid">
+        <div class="department-summary-card">
+            <span>Total Departments</span>
+            <strong>{{ departments|length }}</strong>
+        </div>
+
+        <div class="department-summary-card">
+            <span>Listed HODs</span>
+            <strong>{{ departments|length }}</strong>
+        </div>
+
+        <div class="department-summary-card">
+            <span>Records Status</span>
+            <strong>Active</strong>
+        </div>
+    </div>
+
+    <div class="department-table-card">
+        <div class="department-table-header">
+            <div>
+                <h2>Department Directory</h2>
+                <p>View, update, or remove department information.</p>
+            </div>
+        </div>
+
+        <div class="department-table-wrap">
+            <table class="department-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>HOD</th>
+                        <th>Total Students</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for department in departments %}
+                    <tr>
+                        <td>
+                            <div class="department-name-cell">
+                                <span>{{ department.name|slice:":1" }}</span>
+                                <strong>{{ department.name }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ department.hod }}</td>
+                        <td>
+                            <span class="student-count-pill">
+                                {{ department.total_students }} Students
+                            </span>
+                        </td>
+                        <td>
+                            <div class="department-actions">
+                                <a href="{% url 'department_detail' department.id %}" class="dept-btn dept-view">
+                                    <i class="fas fa-eye"></i>
+                                    View
+                                </a>
+                                <a href="{% url 'edit_department' department.id %}" class="dept-btn dept-edit">
+                                    <i class="fas fa-pen"></i>
+                                    Edit
+                                </a>
+                                <a href="{% url 'delete_department' department.id %}" class="dept-btn dept-delete">
+                                    <i class="fas fa-trash"></i>
+                                    Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="department-empty">
+                                <i class="fas fa-building"></i>
+                                <strong>No departments found</strong>
+                                <span>Add a department to start building your academic structure.</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

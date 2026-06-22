@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card p-4">
+
+<h2>Fees</h2>
+
+<table class="table table-striped">
+
+<thead>
+<tr>
+<th>Student</th>
+<th>Amount</th>
+<th>Paid</th>
+<th>Payment Date</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for fee in fees %}
+
+<tr>
+<td>{{ fee.student }}</td>
+<td>₹{{ fee.amount }}</td>
+<td>{{ fee.paid }}</td>
+<td>{{ fee.payment_date }}</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

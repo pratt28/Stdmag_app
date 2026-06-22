@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card p-4">
+
+<h2>Teachers</h2>
+
+<table class="table table-striped">
+
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+<th>Department</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for teacher in teachers %}
+
+<tr>
+<td>{{ teacher.name }}</td>
+<td>{{ teacher.email }}</td>
+<td>{{ teacher.phone }}</td>
+<td>{{ teacher.department }}</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

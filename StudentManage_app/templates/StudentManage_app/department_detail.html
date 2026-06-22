@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Department Details
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="card shadow-lg border-0">
+        
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">
+                {{ department.name }}
+            </h2>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold">
+                    Department Name
+                </div>
+                <div class="col-md-8">
+                    {{ department.name }}
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold">
+                    Head of Department
+                </div>
+                <div class="col-md-8">
+                    {{ department.hod }}
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold">
+                    Total Students
+                </div>
+                <div class="col-md-8">
+                    {{ department.students.count }}
+                </div>
+            </div>
+
+            <hr>
+
+            {% if department.description %}
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold">
+                    Description
+                </div>
+                <div class="col-md-8">
+                    {{ department.description }}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <div class="card-footer text-end">
+
+            <a href="{% url 'department_list' %}"
+               class="btn btn-secondary">
+                Back
+            </a>
+
+            <a href="{% url 'edit_department' department.id %}"
+               class="btn btn-warning">
+                Edit
+            </a>
+
+            <a href="{% url 'delete_department' department.id %}"
+               class="btn btn-danger">
+                Delete
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
