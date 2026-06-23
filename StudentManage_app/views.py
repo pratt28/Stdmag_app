@@ -250,15 +250,39 @@ def subject_delete(request, pk):
 # ======================
 
 def teacher_list(request):
+    data = Teacher.objects.all()
+    context = {
+        "teachers":data
+    }
+    return render(request,"StudentManage_app/teachers.html",context)
 
-    teachers = Teacher.objects.all()
+def add_teacher(request):
+    if request.method == "POST":
+        name = request.POST['name']
+        email = request.POST['email']
+        phone = request.POST['phone']
+        department = Department.objects.get(id=request.POST['department'])
+        Teacher.objects.create(name=name,email=email,phone=phone, department=department)
+        return redirect('teacher_list')
 
-    return render(
-        request,
-        'StudentManage_app/teachers.html',
-        {'teachers': teachers}
-    )
+    departments = Department.objects.all()
+    return render(request, 'StudentManage_app/tech/add_teacher.html', {'departments': departments})
 
+def edit_teacher(request, id):
+    teacher = Teacher.objects.get(id=id)
+
+    if request.method == "POST":
+        teacher.name = request.POST['name']
+        teacher.email = request.POST['email']
+        teacher.phone = request.POST['phone']
+        teacher.save()
+        return redirect('teacher_list')
+    return render(request, 'StudentManage_app/tech/edit_teacher.html', {'teacher': teacher})
+
+def delete_teacher(request, id):
+    teacher = Teacher.objects.get(id=id)
+    teacher.delete()
+    return redirect('teacher_list')
 
 # ======================
 # ATTENDANCE

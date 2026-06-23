@@ -18,8 +18,28 @@ class StudentAdmin(admin.ModelAdmin):
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
     list_display = ('subject_name', 'subject_code', 'department')
+from django.contrib import admin
+from .models import Teacher
+
+
+@admin.register(Teacher)
+class TeacherAdmin(admin.ModelAdmin):
+    list_display = (
+        'teacher_id',
+        'name',
+        'email',
+        'department',
+        'status'
+    )
+    search_fields = (
+        'name',
+        'email'
+    )
+    list_filter = (
+        'department',
+        'status'
+    )
 admin.site.register(Department)
-admin.site.register(Teacher)
 admin.site.register(Fee)
 admin.site.register(Attendance)
 admin.site.register(Result)

@@ -76,25 +76,19 @@ class Student(models.Model):
         ordering = ['-name']
     def __str__(self):
         return self.name
-    
-
-
-
  
 #teacher model
 class Teacher(models.Model):
-    
+    teacher_id = models.CharField(max_length=20,null=True,unique=True)
     name = models.CharField(max_length=100)
-
-    email = models.EmailField()
-
+    email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15)
-
-    department = models.ForeignKey(
-        Department,
-        on_delete=models.CASCADE
-    )
-
+    qualification = models.CharField(max_length=100,null=True,blank=True)
+    experience = models.IntegerField( default=0)
+    department = models.ForeignKey(Department,on_delete=models.CASCADE)
+    joining_date = models.DateField(null=True,blank=True)
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(null=True, blank=True)
     def __str__(self):
         return self.name
     
