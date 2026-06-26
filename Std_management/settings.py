@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -48,7 +47,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'StudentManage_app.middleware.TeacherAuthMiddleware',
 ]
+
+# Session settings — CRITICAL for fixing the session bug
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request
+
 
 ROOT_URLCONF = 'Std_management.urls'
 
@@ -123,3 +129,18 @@ STATICFILES_DIRS = [
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Login redirect
+# LOGIN_URL = '/attendance/login/'
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/attendance'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# Timezone
+TIME_ZONE = 'Asia/Kolkata'  # Adjust to your timezone
+USE_TZ = True
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

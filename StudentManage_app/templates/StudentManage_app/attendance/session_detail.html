@@ -1,0 +1,128 @@
+{% extends 'StudentManage_app/attendance/base.html' %}
+
+{% block title %}Session Details - {{ session.subject.subject_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Session Details</h1>
+    <p>
+        <strong>{{ session.subject.subject_name }}</strong> | 
+        {{ session.date|date:"M d, Y" }} | 
+        {{ session.period }}
+    </p>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue">👥</div>
+        <h3>Total Students</h3>
+        <div class="number blue">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">✅</div>
+        <h3>Present</h3>
+        <div class="number green">{{ stats.present }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red">❌</div>
+        <h3>Absent</h3>
+        <div class="number red">{{ stats.absent }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange">⏰</div>
+        <h3>Late</h3>
+        <div class="number orange">{{ stats.late }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple">📊</div>
+        <h3>Attendance %</h3>
+        <div class="number purple">{{ stats.percentage }}%</div>
+    </div>
+</div>
+
+<!-- Attendance Progress -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">📊 Attendance Overview</span>
+        <span class="badge {% if stats.percentage >= 75 %}badge-success{% elif stats.percentage >= 60 %}badge-warning{% else %}badge-danger{% endif %}">
+            {{ stats.percentage }}%
+        </span>
+    </div>
+    <div style="padding: 10px 0;">
+        <div class="progress-bar" style="height: 20px; border-radius: 10px;">
+            <div class="progress-bar-fill {% if stats.percentage >= 75 %}success{% elif stats.percentage >= 60 %}warning{% else %}danger{% endif %}" 
+                 style="width: {{ stats.percentage }}%"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 13px; color: #64748b;">
+            <span>0%</span>
+            <span>50%</span>
+            <span>100%</span>
+        </div>
+    </div>
+</div>
+
+<!-- Student Records -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">👥 Student Attendance Records</span>
+        <a href="{% url 'edit_attendance' session.id %}" class="btn btn-primary btn-sm">✏️ Edit</a>
+    </div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Roll No</th>
+                    <th>Student</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ record.student.roll_no }}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            {% if record.student.photo %}
+                            <img src="{{ record.student.photo.url }}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                            {% else %}
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">👤</div>
+                            {% endif %}
+                            {{ record.student.name }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge 
+                            {% if record.status == 'Present' %}badge-success
+                            {% elif record.status == 'Absent' %}badge-danger
+                            {% elif record.status == 'Late' %}badge-warning
+                            {% else %}badge-info{% endif %}">
+                            {{ record.status }}
+                        </span>
+                    </td>
+                    <td style="color: #64748b;">{{ record.remarks|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>No attendance records found</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div style="display: flex; gap: 15px;">
+    <a href="{% url 'session_list' %}" class="btn btn-secondary">← Back to Sessions</a>
+    <a href="{% url 'attendance_report' %}" class="btn btn-secondary">📄 View Full Report</a>
+</div>
+{% endblock %}

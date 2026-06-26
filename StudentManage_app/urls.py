@@ -1,10 +1,42 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
+
+
 
 
 urlpatterns = [
+    
+    path('', views.dashboard, name='dashboard'),
+      # ========== DJANGO AUTH (Admin/University) ==========
+    path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    
+    
+    # ========== TEACHER AUTH (Independent) ==========
+    path('teacher/login/', views.teacher_login, name='teacher_login'),
+    path('teacher/logout/', views.teacher_logout, name='teacher_logout'),
+    
+#     # ========== AUTHENTICATION ==========
+#     # Custom teacher login (your styled page)
+#     path('attendance/login/', views.attendance_login, name='attendance_login'),
+#     # Use Django's built-in logout but redirect to our custom login
+#    path('logout/', views.custom_logout, name='logout'),
+    
+    # Attendance URLs
+    path('attendance/', views.attendance_dashboard, name='attendance_dashboard'),
+    path('attendance/sessions/', views.session_list, name='session_list'),
+    
+    path('attendance/session/create/', views.session_create, name='session_create'),
+    path('attendance/session/<int:session_id>/', views.session_detail, name='session_detail'),
+    path('attendance/session/<int:session_id>/take/', views.take_attendance, name='take_attendance'),
+    path('attendance/session/<int:session_id>/edit/', views.edit_attendance, name='edit_attendance'),
+    path('attendance/report/', views.attendance_report, name='attendance_report'),
+    path('attendance/student/<int:student_id>/', views.student_attendance_detail, name='student_attendance_detail'),
+    path('attendance/low-attendance/', views.low_attendance_report, name='low_attendance_report'),
+
     #student CRUD views
-    path('',views.dashboard,name='dashboard'),
+    
     path('students/',views.student_list,name='student_list'),
     path('students/add/',views.add_student,name='add_student'),
     path('students/<int:id>/',views.student_detail,name='student_detail'),
@@ -29,10 +61,12 @@ urlpatterns = [
     #teacher CRUD views
     path('teachers/',views.teacher_list,name='teacher_list'),
     path('teachers/add/', views.add_teacher, name='add_teacher'),
+    path('teachers/<int:id>/', views.teacher_detail, name='teacher_detail'),
     path('teachers/edit/<int:id>/', views.edit_teacher, name='edit_teacher'),
     path('teachers/delete/<int:id>/', views.delete_teacher, name='delete_teacher'),
+    
 
-    path('attendance/', views.attendance_list, name='attendance_list'),
+  
     path('results/',views.result_list,name='result_list'),
     path('fees/',views.fee_list,name='fee_list'),
     path('users/', views.user_list, name='user_list'),

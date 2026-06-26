@@ -1,0 +1,10 @@
+{% if teacher.headed_departments.exists %}
+<div class="card">
+    <h3>🏫 Head of Department</h3>
+    {% for dept in teacher.headed_departments.all %}
+    <a href="{% url 'department_detail' dept.id %}" class="btn btn-secondary">
+        {{ dept.name }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}

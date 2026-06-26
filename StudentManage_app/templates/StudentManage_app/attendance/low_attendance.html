@@ -1,0 +1,75 @@
+{% extends 'StudentManage_app/attendance/base.html' %}
+
+{% block title %}Low Attendance Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>⚠️ Low Attendance Report</h1>
+    <p>Students with attendance below <strong style="color: #dc2626;">{{ threshold }}%</strong></p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">🚨 At-Risk Students ({{ students|length }} found)</span>
+    </div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Roll No</th>
+                    <th>Department</th>
+                    <th>Year</th>
+                    <th>Total</th>
+                    <th>Present</th>
+                    <th>Percentage</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in students %}
+                <tr style="{% if item.percentage < 50 %}background: #fef2f2;{% endif %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            {% if item.student.photo %}
+                            <img src="{{ item.student.photo.url }}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                            {% else %}
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">👤</div>
+                            {% endif %}
+                            <strong>{{ item.student.name }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ item.student.roll_no }}</td>
+                    <td>{{ item.student.department.name }}</td>
+                    <td>{{ item.student.year }}</td>
+                    <td>{{ item.total }}</td>
+                    <td style="color: #059669; font-weight: 600;">{{ item.present }}</td>
+                    <td>
+                        <span style="font-weight: 800; font-size: 16px; 
+                            {% if item.percentage >= 60 %}color: #d97706;
+                            {% else %}color: #dc2626;{% endif %}">
+                            {{ item.percentage }}%
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'student_attendance_detail' item.student.id %}" class="btn btn-primary btn-sm">View Details</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🎉</div>
+                            <p>Great! All students have attendance above {{ threshold }}%</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

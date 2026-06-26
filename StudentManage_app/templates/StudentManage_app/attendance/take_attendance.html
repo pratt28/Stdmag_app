@@ -1,0 +1,358 @@
+{% extends 'StudentManage_app/attendance/base.html' %}
+
+{% block title %}Take Attendance - {{ session.subject.subject_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .attendance-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+    }
+    .attendance-header h2 {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+    .attendance-header p {
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    .attendance-stats {
+        display: flex;
+        gap: 20px;
+        margin-top: 15px;
+    }
+    .attendance-stat {
+        background: rgba(255,255,255,0.2);
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+    .student-row {
+        transition: all 0.3s;
+    }
+    .student-row:hover {
+        background: #f8fafc;
+    }
+    .student-row.present {
+        background: #f0fdf4;
+    }
+    .student-row.absent {
+        background: #fef2f2;
+    }
+    .student-row.late {
+        background: #fffbeb;
+    }
+    .status-select {
+        padding: 8px 15px;
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .status-select.present {
+        border-color: #10b981;
+        color: #059669;
+        background: #ecfdf5;
+    }
+    .status-select.absent {
+        border-color: #ef4444;
+        color: #dc2626;
+        background: #fef2f2;
+    }
+    .status-select.late {
+        border-color: #f59e0b;
+        color: #d97706;
+        background: #fffbeb;
+    }
+    .student-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .student-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e2e8f0;
+    }
+    .student-avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+    }
+    .student-name {
+        font-weight: 600;
+        color: #1e293b;
+    }
+    .student-roll {
+        font-size: 12px;
+        color: #64748b;
+    }
+    .remark-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 13px;
+        transition: all 0.3s;
+    }
+    .remark-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    .bulk-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .btn-bulk {
+        padding: 8px 20px;
+        border-radius: 8px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-bulk-present {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .btn-bulk-absent {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .submit-section {
+        position: sticky;
+        bottom: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 30px;
+    }
+    .attendance-summary {
+        display: flex;
+        gap: 20px;
+    }
+    .summary-item {
+        text-align: center;
+    }
+    .summary-number {
+        font-size: 28px;
+        font-weight: 800;
+    }
+    .summary-label {
+        font-size: 12px;
+        color: #64748b;
+        text-transform: uppercase;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Session Header -->
+<div class="attendance-header">
+    <h2>📝 Take Attendance</h2>
+    <p>
+        <strong>{{ session.subject.subject_name }}</strong> | 
+        {{ session.date|date:"F d, Y" }} | 
+        Period {{ session.period }} | 
+        {{ session.start_time|time:"g:i A" }} - {{ session.end_time|time:"g:i A" }}
+    </p>
+    <div class="attendance-stats">
+        <div class="attendance-stat">📚 {{ session.subject.department.name }}</div>
+        <div class="attendance-stat">🎓 {{ session.subject.year }}</div>
+        <div class="attendance-stat">👥 {{ students|length }} Students</div>
+    </div>
+</div>
+
+{% if students %}
+<form method="post" id="attendanceForm">
+    {% csrf_token %}
+    
+    <!-- Bulk Actions -->
+    <div class="bulk-actions">
+        <button type="button" class="btn-bulk btn-bulk-present" onclick="markAll('Present')">
+            ✅ Mark All Present
+        </button>
+        <button type="button" class="btn-bulk btn-bulk-absent" onclick="markAll('Absent')">
+            ❌ Mark All Absent
+        </button>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card" style="padding: 0; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8fafc;">
+                    <th style="padding: 16px 20px; text-align: left; width: 60px;">#</th>
+                    <th style="padding: 16px 20px; text-align: left;">Student</th>
+                    <th style="padding: 16px 20px; text-align: left; width: 180px;">Status</th>
+                    <th style="padding: 16px 20px; text-align: left;">Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr class="student-row" id="row-{{ student.id }}">
+                    <td style="padding: 16px 20px; font-weight: 700; color: #64748b;">{{ forloop.counter }}</td>
+                    <td style="padding: 16px 20px;">
+                        <div class="student-info">
+                            {% if student.photo %}
+                            <img src="{{ student.photo.url }}" class="student-avatar" alt="{{ student.name }}">
+                            {% else %}
+                            <div class="student-avatar-placeholder">{{ student.name|first|upper }}</div>
+                            {% endif %}
+                            <div>
+                                <div class="student-name">{{ student.name }}</div>
+                                <div class="student-roll">Roll: {{ student.roll_no }} | {{ student.year }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 16px 20px;">
+                        <select name="student_{{ student.id }}" 
+                                id="status-{{ student.id }}"
+                                class="status-select" 
+                                onchange="updateRow(this, {{ student.id }})">
+                            {% for code, label in status_choices %}
+                            <option value="{{ code }}" 
+                                {% if existing_records %}
+                                    {% if existing_records.student.id == student.id and existing_records.status == code %}selected{% endif %}
+                                {% endif %}
+                                {% if not existing_records and code == 'Present' %}selected{% endif %}>
+                                {% if code == 'Present' %}✅{% elif code == 'Absent' %}❌{% elif code == 'Late' %}⏰{% else %}📝{% endif %} 
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td style="padding: 16px 20px;">
+                        <input type="text" 
+                               name="remark_{{ student.id }}" 
+                               class="remark-input"
+                               placeholder="Optional remark..."
+                               value="">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Submit Section -->
+    <div class="submit-section">
+        <div class="attendance-summary">
+            <div class="summary-item">
+                <div class="summary-number" id="totalCount" style="color: #667eea;">{{ students|length }}</div>
+                <div class="summary-label">Total</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="presentCount" style="color: #10b981;">0</div>
+                <div class="summary-label">Present</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="absentCount" style="color: #ef4444;">0</div>
+                <div class="summary-label">Absent</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="lateCount" style="color: #f59e0b;">0</div>
+                <div class="summary-label">Late</div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <a href="{% url 'session_list' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="padding: 14px 40px; font-size: 16px;">
+                💾 Save Attendance
+            </button>
+        </div>
+    </div>
+</form>
+{% else %}
+<div class="card" style="text-align: center; padding: 60px;">
+    <div style="font-size: 64px; margin-bottom: 20px;">😕</div>
+    <h3 style="color: #1e293b; margin-bottom: 10px;">No Students Found</h3>
+    <p style="color: #64748b; margin-bottom: 25px;">
+        There are no students in <strong>{{ session.subject.department.name }}</strong> 
+        for <strong>{{ session.subject.year }}</strong>.
+    </p>
+    <div style="display: flex; gap: 15px; justify-content: center;">
+        <a href="{% url 'add_student' %}" class="btn btn-primary">+ Add Students</a>
+        <a href="{% url 'session_list' %}" class="btn btn-secondary">Back to Sessions</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateRow(select, studentId) {
+    const row = document.getElementById('row-' + studentId);
+    const value = select.value;
+    
+    // Remove all status classes
+    row.classList.remove('present', 'absent', 'late');
+    select.classList.remove('present', 'absent', 'late');
+    
+    // Add appropriate class
+    if (value === 'Present') {
+        row.classList.add('present');
+        select.classList.add('present');
+    } else if (value === 'Absent') {
+        row.classList.add('absent');
+        select.classList.add('absent');
+    } else if (value === 'Late') {
+        row.classList.add('late');
+        select.classList.add('late');
+    }
+    
+    updateSummary();
+}
+
+function markAll(status) {
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.value = status;
+        // Trigger change event
+        const event = new Event('change');
+        select.dispatchEvent(event);
+    });
+}
+
+function updateSummary() {
+    let present = 0, absent = 0, late = 0, excused = 0;
+    
+    document.querySelectorAll('.status-select').forEach(select => {
+        const value = select.value;
+        if (value === 'Present') present++;
+        else if (value === 'Absent') absent++;
+        else if (value === 'Late') late++;
+        else if (value === 'Excused') excused++;
+    });
+    
+    document.getElementById('presentCount').textContent = present;
+    document.getElementById('absentCount').textContent = absent;
+    document.getElementById('lateCount').textContent = late;
+}
+
+// Initialize on page load
+document.querySelectorAll('.status-select').forEach(select => {
+    const studentId = select.id.replace('status-', '');
+    updateRow(select, studentId);
+});
+</script>
+{% endblock %}

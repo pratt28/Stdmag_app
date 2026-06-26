@@ -1,0 +1,101 @@
+{% extends 'StudentManage_app/attendance/base.html' %}
+
+{% block title %}Sessions - Attendance System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Attendance Sessions</h1>
+    <p>Manage and track all your attendance sessions</p>
+</div>
+
+<!-- Filters -->
+<div class="card" style="padding: 20px;">
+    <form method="get" class="filters">
+        <select name="subject" class="form-control">
+            <option value="">All Subjects</option>
+            {% for subject in subjects %}
+            <option value="{{ subject.id }}" {% if request.GET.subject == subject.id|stringformat:"s" %}selected{% endif %}>
+                {{ subject.subject_name }}
+            </option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}" placeholder="From Date">
+        <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}" placeholder="To Date">
+        <button type="submit" class="btn btn-primary btn-sm">🔍 Filter</button>
+        <a href="{% url 'session_list' %}" class="btn btn-secondary btn-sm">Clear</a>
+    </form>
+</div>
+
+<!-- Sessions Table -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">📚 All Sessions</span>
+        <a href="{% url 'session_create' %}" class="btn btn-primary btn-sm">+ Create Session</a>
+    </div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Period</th>
+                    <th>Time</th>
+                    {% if not teacher %}
+                    <th>Teacher</th>
+                    {% endif %}
+                    <th>Status</th>
+                    <th>Attendance</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions %}
+                <tr>
+                    <td><strong>{{ session.subject.subject_name }}</strong></td>
+                    <td>{{ session.date|date:"M d, Y" }}</td>
+                    <td>{{ session.period }}</td>
+                    <td>{{ session.start_time|default:"--:--" }} - {{ session.end_time|default:"--:--" }}</td>
+                    {% if not teacher %}
+                    <td>{{ session.teacher.name }}</td>
+                    {% endif %}
+                    <td>
+                        {% if session.is_completed %}
+                            <span class="badge badge-success">✓ Completed</span>
+                        {% else %}
+                            <span class="badge badge-warning">⏳ Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if session.is_completed %}
+                            <span style="color: #059669; font-weight: 600;">
+                                {{ session.present_count }}P / {{ session.absent_count }}A
+                            </span>
+                        {% else %}
+                            <span style="color: #94a3b8;">--</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'session_detail' session.id %}" class="btn btn-secondary btn-sm">View</a>
+                        {% if not session.is_completed %}
+                        <a href="{% url 'take_attendance' session.id %}" class="btn btn-success btn-sm" style="margin-left: 5px;">Take</a>
+                        {% endif %}
+                        <a href="{% url 'edit_attendance' session.id %}" class="btn btn-secondary btn-sm" style="margin-left: 5px;">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if not teacher %}9{% else %}8{% endif %}">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>No sessions found</p>
+                            <a href="{% url 'session_create' %}" class="btn btn-primary btn-sm" style="margin-top: 15px;">Create First Session</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

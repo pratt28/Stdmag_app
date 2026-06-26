@@ -17,6 +17,54 @@
 </head>
 
 <body>
+    <!-- Admin Navbar -->
+<nav style="
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+">
+    <div style="font-size: 20px; font-weight: 700;">
+        🏛️ University Admin
+    </div>
+    
+    <div style="display: flex; gap: 25px; align-items: center;">
+        <a href="{% url 'dashboard' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Dashboard</a>
+        <a href="{% url 'student_list' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Students</a>
+        <a href="{% url 'teacher_list' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Teachers</a>
+        <a href="{% url 'department_list' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Departments</a>
+        <a href="{% url 'subject_list' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Subjects</a>
+    </div>
+    
+    <!-- Logout Button -->
+    {% if user.is_authenticated %}
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <span style="background: rgba(255,255,255,0.2); padding: 8px 18px; border-radius: 25px; font-size: 13px;">
+            👤 {{ user.username }}
+        </span>
+        <form method="post" action="{% url 'login' %}" style="display: inline; margin: 0;">
+            {% csrf_token %}
+            <button type="submit" style="
+                background: rgba(239, 68, 68, 0.85);
+                color: white;
+                border: none;
+                padding: 9px 22px;
+                border-radius: 25px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s;
+            " onmouseover="this.style.background='rgba(239, 68, 68, 1)'" 
+            onmouseout="this.style.background='rgba(239, 68, 68, 0.85)'">
+                🚪 Logout
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</nav>
 
 <div class="wrapper">
 
@@ -66,19 +114,19 @@ Subjects
 Teachers
 </a>
 </li>
-
 <li>
-<a href="{% url 'attendance_list' %}">
-<i class="fas fa-calendar-check"></i>
-Attendance
-</a>
+    <a href="{% url 'attendance_dashboard' %}">
+        <i class="fas fa-calendar-check"></i>
+        Attendance
+    </a>
 </li>
 
+
 <li>
-<a href="{% url 'result_list' %}">
-<i class="fas fa-file-alt"></i>
-Results
-</a>
+    <a href="{% url 'result_list' %}">
+        <i class="fas fa-file-alt"></i>
+        Results
+    </a>
 </li>
 
 <li>
@@ -86,6 +134,7 @@ Results
 <i class="fas fa-money-bill-wave"></i>
 Fees
 </a>
+
 </li>
 
 <li>

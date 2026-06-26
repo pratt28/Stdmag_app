@@ -1,0 +1,83 @@
+{% extends 'StudentManage_app/attendance/base.html' %}
+
+{% block title %}Edit Attendance - {{ session.subject.subject_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>✏️ Edit Attendance</h1>
+    <p>
+        <strong>{{ session.subject.subject_name }}</strong> | 
+        {{ session.date|date:"M d, Y" }} | 
+        {{ session.period }}
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">👥 Update Student Records</span>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Roll No</th>
+                        <th>Student</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ record.student.roll_no }}</strong></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if record.student.photo %}
+                                <img src="{{ record.student.photo.url }}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                                {% else %}
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">👤</div>
+                                {% endif %}
+                                {{ record.student.name }}
+                            </div>
+                        </td>
+                        <td>
+                            <select name="student_{{ record.student.id }}" class="form-control" style="width: 140px;">
+                                {% for code, label in status_choices %}
+                                <option value="{{ code }}" {% if record.status == code %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="remark_{{ record.student.id }}" class="form-control" 
+                                   value="{{ record.remarks|default:'' }}" placeholder="Optional remark">
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📭</div>
+                                <p>No records to edit</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-top: 25px;">
+            <button type="submit" class="btn btn-primary">💾 Update Attendance</button>
+            <a href="{% url 'session_detail' session.id %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -74,9 +74,8 @@
         </div>
 
     </div>
-
+{% comment %} here i have the chart code {% endcomment %}
     <div class="row g-4 mt-1">
-
         <div class="col-xl-8">
             <div class="dashboard-panel">
                 <div class="panel-heading">
@@ -91,7 +90,7 @@
                 </div>
             </div>
         </div>
-
+{% comment %} Chart code ended here {% endcomment %}
         <div class="col-xl-4">
             <div class="dashboard-panel h-100">
                 <div class="panel-heading">
@@ -114,7 +113,7 @@
                         <i class="fas fa-book-medical"></i>
                         Add Subject
                     </a>
-                    <a href="{% url 'attendance_list' %}">
+                    <a href="{% url 'attendance_dashboard' %}">
                         <i class="fas fa-calendar-check"></i>
                         Add Attendance
                     </a>
@@ -124,8 +123,8 @@
 
     </div>
 
+{% comment %} here i have the department chart code {% endcomment %}
     <div class="row g-4 mt-1">
-
         <div class="col-xl-4">
             <div class="dashboard-panel h-100">
                 <div class="panel-heading">
@@ -139,7 +138,7 @@
                 </div>
             </div>
         </div>
-
+{% comment %} Department chart code ended here {% endcomment %}
         <div class="col-xl-4">
             <div class="dashboard-panel h-100">
                 <div class="panel-heading">
@@ -177,10 +176,10 @@
 
                 <div class="year-summary">
                     {% for year in year_summary %}
-                    <a href="{% url 'student_list' %}?year={{ year.year|urlencode }}" class="year-row">
+                    <div class="year-row">
                         <span>{{ year.year|default:"Not Set" }}</span>
                         <strong>{{ year.count }}</strong>
-                    </a>
+                    </div>
                     {% empty %}
                     <div class="dashboard-empty">No student year data found.</div>
                     {% endfor %}

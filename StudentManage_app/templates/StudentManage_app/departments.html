@@ -25,7 +25,7 @@
 
         <div class="department-summary-card">
             <span>Listed HODs</span>
-            <strong>{{ departments|length }}</strong>
+            <strong>{{ hod_count }}</strong>
         </div>
 
         <div class="department-summary-card">
@@ -62,7 +62,20 @@
                                 <strong>{{ department.name }}</strong>
                             </div>
                         </td>
-                        <td>{{ department.hod }}</td>
+                        <td>
+                            {% if department.hod %}
+                                <a href="{% url 'teacher_detail' department.hod.id %}" 
+                                   class="hod-link" 
+                                   style="color: #667eea; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">
+                                        {{ department.hod.name|first|upper }}
+                                    </div>
+                                    <span>{{ department.hod.name }}</span>
+                                </a>
+                            {% else %}
+                                <span style="color: #94a3b8; font-style: italic;">— Not Assigned —</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="student-count-pill">
                                 {{ department.total_students }} Students
