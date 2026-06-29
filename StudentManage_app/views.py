@@ -14,8 +14,10 @@ from django.utils import timezone
 from datetime import timedelta
 import hashlib
 from functools import wraps
-from .forms import StudentForm, DepartmentForm, SubjectForm
+from .forms import StudentForm, DepartmentForm, SubjectForm, SubjectSelectForm
 from .models import (Student, Department, Teacher, Fee, Attendance, Result, Subject,AttendanceSession, TeacherSubject)
+import time
+
 
 
 # TEACHER AUTHENTICATION ("""Helper to get current teacher from session""")
@@ -222,6 +224,7 @@ def delete_student(request, id):
 # DEPARTMENT CRUD (Admin)
 # ============================================================
 
+    
 @login_required
 def department_list(request):
     departments = Department.objects.select_related('hod').all()
@@ -286,6 +289,21 @@ def subject_list(request):
     context = {'departments': departments}
     return render(request, 'StudentManage_app/sub/subject_list.html', context)
 
+@login_required
+def subject_select(request):
+    """Select an existing subject"""
+    if request.method == 'POST':
+        form = SubjectSelectForm(request.POST)
+        if form.is_valid():
+            subject = form.cleaned_data['subject']
+            return redirect('subject_detail', id=subject.id)
+    else:
+        form = SubjectSelectForm()
+    
+    return render(request, 'StudentManage_app/sub/subject_select.html', {
+        'form': form,
+        'subjects': Subject.objects.all().order_by('subject_name')
+    })
 
 @login_required
 def subject_department_list(request, department_id):
@@ -464,6 +482,7 @@ def delete_teacher(request, id):
 # ============================================================
 # ATTENDANCE (Teacher Portal)
 # ============================================================
+@teacher_login_required
 def attendance_dashboard(request):
     """Main attendance dashboard — STRICT teacher-only access"""
     teacher = request.teacher  # Set by decorator

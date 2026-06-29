@@ -1,4 +1,5 @@
 from django import forms
+from dal import autocomplete
 from .models import Student,Department,Subject,AttendanceSession,Attendance,Teacher
 
 class StudentForm(forms.ModelForm):
@@ -25,7 +26,6 @@ class DepartmentForm(forms.ModelForm):
         widgets = {'name': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Department Name'}),
                    'hod': forms.Select(attrs={'class': 'form-control'}),
         }
-    
     def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
         # Only show active teachers in the dropdown
@@ -46,20 +46,36 @@ class SubjectForm(forms.ModelForm):
             'year': forms.Select(attrs={'class': 'form-control'}),
             'semester': forms.Select(attrs={'class': 'form-control'}),
         }
-        
+class SubjectSelectForm(forms.Form):
+    """Form to select an existing subject from database"""
+    subject = forms.ModelChoiceField(
+        queryset=Subject.objects.all().order_by('subject_name'),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        empty_label="---------"
+    )        
 
+# class AttendanceSessionForm(forms.ModelForm):
+#     class Meta:
+#         model = AttendanceSession
+#         fields = ['subject', 'period', 'date', 'start_time', 'end_time']
+#         widgets = {
+#             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+#             'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+#             'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+#             'period': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Period 1, Morning Session'}),
+#             'subject': forms.Select(attrs={'class': 'form-select'}),
+#         }
 class AttendanceSessionForm(forms.ModelForm):
     class Meta:
         model = AttendanceSession
-        fields = ['subject', 'period', 'date', 'start_time', 'end_time']
+        fields = ['subject', 'date', 'period', 'start_time', 'end_time']
         widgets = {
+            'subject': forms.Select(attrs={'class': 'form-control'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'period': forms.TextInput(attrs={'class': 'form-control'}),
             'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
-            'period': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Period 1, Morning Session'}),
-            'subject': forms.Select(attrs={'class': 'form-select'}),
         }
-
 
 class BulkAttendanceForm(forms.Form):
     """Form for taking bulk attendance - one checkbox per student"""

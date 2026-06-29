@@ -47,12 +47,19 @@ class Subject(models.Model):
     semester = models.CharField(max_length=20, choices=SEMESTER_CHOICES, null=True, blank=True)
     year = models.CharField(max_length=20, choices=YEAR_CHOICES, null=True, blank=True)
     subject_name = models.CharField(max_length=100)
-    subject_code = models.CharField(max_length=20, unique=True)
+    subject_code = models.CharField(max_length=20)
     credits = models.IntegerField(default=3)
+    
+    class Meta:
+        # Same code allowed in different departments
+        unique_together = ['department', 'subject_code']
+        ordering = ['department__name', 'year', 'semester', 'subject_name']
 
+    # def __str__(self):
+    #     return f"{self.subject_name} ({self.department.name})"
     def __str__(self):
-        return f"{self.subject_name} ({self.department.name})"
-
+        dept_name = self.department.name if self.department else "No Dept"
+        return f"{self.subject_name} ({dept_name})"
 
 class Student(models.Model):
     YEAR_CHOICES = (
@@ -98,7 +105,7 @@ class Teacher(models.Model):
     status = models.BooleanField(default=True)
     created_at = models.DateTimeField(null=True, blank=True)
     
-    # 🔐 Independent login credentials (NOT Django auth)
+    #Independent login credentials (NOT Django auth)
     password_hash = models.CharField(max_length=128, blank=True, null=True)
     is_teacher_admin = models.BooleanField(default=False, help_text="Can manage other teachers")
     

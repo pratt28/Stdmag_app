@@ -8,7 +8,7 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     
     path('', views.dashboard, name='dashboard'),
-      # ========== DJANGO AUTH (Admin/University) ==========
+    #  DJANGO AUTH (Admin/University)
     path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     # path('accounts/logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/accounts/login/'), name='logout'),
@@ -17,13 +17,7 @@ urlpatterns = [
     # ========== TEACHER AUTH (Independent) ==========
     path('teacher/login/', views.teacher_login, name='teacher_login'),
     path('teacher/logout/', views.teacher_logout, name='teacher_logout'),
-    
-#     # ========== AUTHENTICATION ==========
-#     # Custom teacher login (your styled page)
-#     path('attendance/login/', views.attendance_login, name='attendance_login'),
-#     # Use Django's built-in logout but redirect to our custom login
-#    path('logout/', views.custom_logout, name='logout'),
-    
+ 
     # Attendance URLs
     path('attendance/', views.attendance_dashboard, name='attendance_dashboard'),
     path('attendance/sessions/', views.session_list, name='session_list'),
@@ -53,6 +47,7 @@ urlpatterns = [
     #subject CRUD views
     path('subjects/', views.subject_list, name='subject_list'),
     path('subjects/add/', views.subject_create, name='subject_create'),
+    path('subjects/select/', views.subject_select, name='subject_select'),
     path('subjects/department/<int:department_id>/', views.subject_department_list, name='subject_department_list'),
     path('subjects/<int:id>/', views.subject_detail, name='subject_detail'),
     path('subjects/edit/<int:pk>/', views.subject_update, name='subject_update'),
