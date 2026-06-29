@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import hashlib
+
 class Department(models.Model):
     name = models.CharField(max_length=100)
     hod = models.ForeignKey(
@@ -12,14 +13,12 @@ class Department(models.Model):
         blank=True,
         related_name='headed_departments'  # Access from Teacher side
     )
-    
     @property
     def total_students(self):
         return self.students.count()
 
     def __str__(self):
         return self.name
-    
     
     @property
     def hod_name(self):
@@ -143,7 +142,6 @@ class Attendance(models.Model):
         ('Late', 'Late'),
         ('Excused', 'Excused'),
     ]
-    
     session = models.ForeignKey(AttendanceSession, on_delete=models.CASCADE, related_name='records',null=True,blank=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='attendances')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Present')
@@ -161,7 +159,7 @@ class Result(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='results')
     marks = models.IntegerField()
     grade = models.CharField(max_length=5)
-    exam_date = models.DateField(null=True, blank=True)
+    # exam_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
