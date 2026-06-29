@@ -1667,7 +1667,82 @@ def dashboard(request):
         'recent_students': recent_students
     }
     return render(request, 'dashboard.html', context)
+# from django.shortcuts import render
+# from django.contrib.auth.decorators import login_required
+# from django.utils import timezone
+# from .models import Student, Department, Subject, Teacher
+# from django.db.models import Count, Q
+# from datetime import timedelta
 
+# @login_required
+# def dashboard(request):
+#     """Stunning dashboard with all stats"""
+    
+#     # Basic counts
+#     total_students = Student.objects.count()
+#     total_departments = Department.objects.count()
+#     total_subjects = Subject.objects.count()
+#     total_teachers = Teacher.objects.count()
+    
+#     # Monthly student growth data (last 12 months)
+#     months = []
+#     monthly_students = []
+#     for i in range(11, -1, -1):
+#         month_start = timezone.now() - timedelta(days=30*i)
+#         month_name = month_start.strftime('%b')
+#         months.append(month_name)
+#         # Count students created in that month (adjust based on your model)
+#         count = Student.objects.filter(
+#             created_at__year=month_start.year,
+#             created_at__month=month_start.month
+#         ).count() if hasattr(Student, 'created_at') else 0
+#         monthly_students.append(count)
+    
+#     # Department data for pie chart - FIXED: use 'students' (plural), not 'student'
+#     departments = Department.objects.annotate(
+#         student_count=Count('students', distinct=True),   # ✅ FIXED: 'students' not 'student'
+#         subjects_count=Count('subjects', distinct=True)  # ✅ 'subjects' is correct
+#     ).order_by('-student_count')
+    
+#     dept_labels = [d.name for d in departments]
+#     dept_data = [d.student_count for d in departments]
+    
+#     # Top departments (by student count)
+#     top_departments = departments[:5]
+    
+#     # Year summary (1st, 2nd, 3rd, 4th year)
+#     year_summary = []
+#     for year in range(1, 5):
+#         count = Student.objects.filter(year=year).count() if hasattr(Student, 'year') else 0
+#         total = total_students or 1
+#         year_summary.append({
+#             'label': f'{year}{"st" if year==1 else "nd" if year==2 else "rd" if year==3 else "th"} Year',
+#             'count': count,
+#             'percentage': (count / total) * 100 if total > 0 else 0
+#         })
+    
+#     # Recent students
+#     recent_students = Student.objects.select_related('department').order_by('-id')[:4]
+    
+#     context = {
+#         'now': timezone.now(),
+#         'total_students': total_students,
+#         'total_departments': total_departments,
+#         'total_subjects': total_subjects,
+#         'total_teachers': total_teachers,
+#         'monthly_students': monthly_students,
+#         'months': months,
+#         'dept_labels': dept_labels,
+#         'dept_data': dept_data,
+#         'top_departments': top_departments,
+#         'departments': departments,
+#         'year_summary': year_summary,
+#         'year_data': year_summary,
+#         'recent_students': recent_students,
+#         'students': recent_students,
+#     }
+    
+#     return render(request, 'dashboard.html', context)
 
 # ============================================================
 # STUDENT CRUD (Admin)

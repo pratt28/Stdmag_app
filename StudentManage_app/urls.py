@@ -26,7 +26,6 @@ urlpatterns = [
     # Attendance URLs
     path('attendance/', views.attendance_dashboard, name='attendance_dashboard'),
     path('attendance/sessions/', views.session_list, name='session_list'),
-    
     path('attendance/session/create/', views.session_create, name='session_create'),
     path('attendance/session/<int:session_id>/', views.session_detail, name='session_detail'),
     path('attendance/session/<int:session_id>/take/', views.take_attendance, name='take_attendance'),
