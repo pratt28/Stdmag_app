@@ -1443,7 +1443,7 @@
 # # Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, logout as django_logout
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
@@ -1595,28 +1595,43 @@ def teacher_login(request):
 #         del request.session['teacher_id']
 #     messages.success(request, "You have been logged out successfully.")
 #     return redirect('teacher_login')
+# def teacher_logout(request):
+#     """Logout teacher — complete session cleanup"""
+#     # Clear teacher-specific keys
+#     for key in ['teacher_id', 'teacher_name', 'teacher_id_display']:
+#         if key in request.session:
+#             del request.session[key]
+    
+#     # Also clear Django auth session if exists (security)
+#     from django.contrib.auth import logout as django_logout
+#     django_logout(request)
+    
+#     # Flush entire session
+#     request.session.flush()
+    
+#     messages.success(request, "You have been logged out successfully.")
+#     return redirect('teacher_login')
+    
+#     # 🔴 SECURITY: Also clear Django auth session if exists
+#     from django.contrib.auth import logout as django_logout
+#     django_logout(request)
+    
+#     # Flush entire session
+#     request.session.flush()
+    
+#     messages.success(request, "You have been logged out successfully.")
+#     return redirect('teacher_login')
+
 def teacher_logout(request):
-    """Logout teacher — complete session cleanup"""
-    # Clear teacher-specific keys
+    """Logout teacher — completely clear ALL sessions"""
+    # 1. Clear teacher-specific session keys first
     for key in ['teacher_id', 'teacher_name', 'teacher_id_display']:
-        if key in request.session:
-            del request.session[key]
+        request.session.pop(key, None)  # .pop() is safer than del
     
-    # Also clear Django auth session if exists (security)
-    from django.contrib.auth import logout as django_logout
+    # 2. Call Django's logout (this also calls flush() internally)
     django_logout(request)
     
-    # Flush entire session
-    request.session.flush()
-    
-    messages.success(request, "You have been logged out successfully.")
-    return redirect('teacher_login')
-    
-    # 🔴 SECURITY: Also clear Django auth session if exists
-    from django.contrib.auth import logout as django_logout
-    django_logout(request)
-    
-    # Flush entire session
+    # 3. Extra safety: flush the session
     request.session.flush()
     
     messages.success(request, "You have been logged out successfully.")

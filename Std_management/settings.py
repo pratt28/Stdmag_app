@@ -133,7 +133,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Login redirect
 # LOGIN_URL = '/attendance/login/'
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/attendance'
+LOGIN_REDIRECT_URL = '/'   # Goes to admin dashboard (root URL = dashboard)
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # Timezone
