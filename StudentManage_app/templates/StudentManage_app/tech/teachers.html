@@ -1,47 +1,94 @@
 {% extends 'base.html' %}
 
+{% block title %}Teachers - Student Management{% endblock %}
+{% block page_title %}Teachers{% endblock %}
+
 {% block content %}
 
-<div class="card p-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Teachers</h2>
-        <a href="{% url 'add_teacher' %}" class="btn btn-primary">+ Add Teacher</a>
+<!-- Page Header -->
+<section class="card-shadow bg-surface-container rounded-xl p-md flex flex-col md:flex-row justify-between items-start md:items-center gap-md border border-outline-variant/30">
+    <div>
+        <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-label-md font-label-md rounded-full mb-xs">Faculty</span>
+        <h1 class="text-headline-lg font-headline-lg text-on-surface">Teachers</h1>
+        <p class="text-body-md text-on-surface/60 mt-xs">Manage faculty members and their department assignments.</p>
     </div>
+    <a href="{% url 'add_teacher' %}" class="flex items-center gap-xs px-6 py-3 bg-primary-container text-on-primary rounded-xl font-bold shadow-md hover:opacity-90 transition-all active:scale-95">
+        <span class="material-symbols-outlined">person_add</span>
+        Add Teacher
+    </a>
+</section>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Department</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for teacher in teachers %}
-            <tr>
-                <td>{{ teacher.name }}</td>
-                <td>{{ teacher.email }}</td>
-                <td>{{ teacher.phone }}</td>
-                <td>{{ teacher.department }}</td>
-                <td>
-                    <a href="{% url 'edit_teacher' teacher.id %}" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="{% url 'delete_teacher' teacher.id %}" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="text-center text-muted">
-                    No teachers found
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-</div>
+<!-- Teachers Table -->
+<section class="card-shadow bg-surface-container rounded-xl border border-outline-variant/30 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-outline-variant/30 bg-surface-container-low">
+                    <th class="text-left px-md py-3 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider">Name</th>
+                    <th class="text-left px-md py-3 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider">Email</th>
+                    <th class="text-left px-md py-3 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider">Phone</th>
+                    <th class="text-left px-md py-3 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider">Department</th>
+                    <th class="text-left px-md py-3 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                <tr class="border-b border-outline-variant/20 hover:bg-surface-container-high/50 transition-colors group">
+                    <td class="px-md py-3">
+                        <div class="flex items-center gap-sm">
+                            <div class="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-bold text-lg">
+                                {{ teacher.name|slice:":1"|upper }}
+                            </div>
+                            <strong class="text-body-md font-bold text-on-surface">{{ teacher.name }}</strong>
+                        </div>
+                    </td>
+                    <td class="px-md py-3">
+                        <span class="text-body-md text-on-surface/70">{{ teacher.email|default:"—" }}</span>
+                    </td>
+                    <td class="px-md py-3">
+                        <span class="text-body-md text-on-surface/70">{{ teacher.phone|default:"—" }}</span>
+                    </td>
+                    <td class="px-md py-3">
+                        <span class="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full text-label-md font-label-md">
+                            {{ teacher.department|default:"—" }}
+                        </span>
+                    </td>
+                    <td class="px-md py-3">
+                        <div class="flex items-center gap-xs">
+                            <a href="{% url 'edit_teacher' teacher.id %}" 
+                                class="p-2 bg-warning/10 text-warning rounded-lg hover:bg-warning hover:text-white transition-all"
+                                title="Edit">
+                                <span class="material-symbols-outlined text-lg">edit</span>
+                            </a>
+                            <a href="{% url 'delete_teacher' teacher.id %}" 
+                                class="p-2 bg-error/10 text-error rounded-lg hover:bg-error hover:text-on-error transition-all"
+                                title="Delete"
+                                onclick="return confirm('Are you sure you want to delete {{ teacher.name }}?')">
+                                <span class="material-symbols-outlined text-lg">delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-md py-xl text-center">
+                        <div class="flex flex-col items-center gap-sm">
+                            <div class="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                <span class="material-symbols-outlined text-4xl">school</span>
+                            </div>
+                            <div class="text-headline-md font-headline-md text-on-surface">No teachers found</div>
+                            <p class="text-body-md text-on-surface/60">Add teachers to manage faculty records.</p>
+                            <a href="{% url 'add_teacher' %}" class="mt-sm px-6 py-3 bg-primary-container text-on-primary rounded-xl font-bold hover:opacity-90 transition-all">
+                                <span class="material-symbols-outlined align-middle mr-1">person_add</span>
+                                Add Teacher
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
 
 {% endblock %}

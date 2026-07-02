@@ -1,16 +1,26 @@
 {% extends 'StudentManage_app/attendance/base.html' %}
-
 {% block title %}Low Attendance Report{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <h1>⚠️ Low Attendance Report</h1>
-    <p>Students with attendance below <strong style="color: #dc2626;">{{ threshold }}%</strong></p>
+    <p>Students with attendance below threshold</p>
+</div>
+
+<!-- Threshold Filter -->
+<div class="card" style="padding: 20px; max-width: 400px;">
+    <form method="get" class="filters" style="align-items: center;">
+        <label style="font-weight: 600; color: #374151; white-space: nowrap;">Threshold:</label>
+        {{ form.threshold }}
+        <span style="color: #64748b; font-size: 14px;">%</span>
+        <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+    </form>
 </div>
 
 <div class="card">
     <div class="card-header">
         <span class="card-title">🚨 At-Risk Students ({{ students|length }} found)</span>
+        <span class="badge badge-danger" style="font-size: 14px;">Below {{ threshold }}%</span>
     </div>
     
     <div class="table-container">
@@ -24,6 +34,7 @@
                     <th>Year</th>
                     <th>Total</th>
                     <th>Present</th>
+                    <th>Late</th>
                     <th>Percentage</th>
                     <th>Action</th>
                 </tr>
@@ -47,6 +58,7 @@
                     <td>{{ item.student.year }}</td>
                     <td>{{ item.total }}</td>
                     <td style="color: #059669; font-weight: 600;">{{ item.present }}</td>
+                    <td style="color: #d97706;">{{ item.late }}</td>
                     <td>
                         <span style="font-weight: 800; font-size: 16px; 
                             {% if item.percentage >= 60 %}color: #d97706;
@@ -60,7 +72,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="9">
+                    <td colspan="10">
                         <div class="empty-state">
                             <div class="empty-state-icon">🎉</div>
                             <p>Great! All students have attendance above {{ threshold }}%</p>

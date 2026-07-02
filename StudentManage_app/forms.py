@@ -51,34 +51,30 @@ class SubjectSelectForm(forms.Form):
     subject = forms.ModelChoiceField(
         queryset=Subject.objects.all().order_by('subject_name'),
         widget=forms.Select(attrs={'class': 'form-control'}),
-        empty_label="---------"
+        empty_label="---no subject selected---"
     )        
 
-# class AttendanceSessionForm(forms.ModelForm):
-#     class Meta:
-#         model = AttendanceSession
-#         fields = ['subject', 'period', 'date', 'start_time', 'end_time']
-#         widgets = {
-#             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-#             'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
-#             'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
-#             'period': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Period 1, Morning Session'}),
-#             'subject': forms.Select(attrs={'class': 'form-select'}),
-#         }
 class AttendanceSessionForm(forms.ModelForm):
+    """Form for creating attendance sessions"""
+    
     class Meta:
         model = AttendanceSession
         fields = ['subject', 'date', 'period', 'start_time', 'end_time']
         widgets = {
-            'subject': forms.Select(attrs={'class': 'form-control'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'period': forms.TextInput(attrs={'class': 'form-control'}),
+            'period': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Period 1, Morning Session'}),
             'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Don't render the default subject field - we'll use our custom HTML
+        self.fields['subject'].widget = forms.HiddenInput()
+
 
 class BulkAttendanceForm(forms.Form):
-    """Form for taking bulk attendance - one checkbox per student"""
+    """Dynamic form for taking bulk attendance"""
     def __init__(self, students, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for student in students:
@@ -97,7 +93,35 @@ class BulkAttendanceForm(forms.Form):
             )
 
 
+
+
+# class AttendanceFilterForm(forms.Form):
+#     subject = forms.ModelChoiceField(
+#         queryset=Subject.objects.all(),
+#         required=False,
+#         widget=forms.Select(attrs={'class': 'form-select'})
+#     )
+#     student = forms.ModelChoiceField(
+#         queryset=Student.objects.all(),
+#         required=False,
+#         widget=forms.Select(attrs={'class': 'form-select'})
+#     )
+#     date_from = forms.DateField(
+#         required=False,
+#         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+#     )
+#     date_to = forms.DateField(
+#         required=False,
+#         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+#     )
+#     status = forms.ChoiceField(
+#         choices=[('', 'All')] + list(Attendance.STATUS_CHOICES),
+#         required=False,
+#         widget=forms.Select(attrs={'class': 'form-select'})
+#     )
+
 class AttendanceFilterForm(forms.Form):
+    """Form for filtering attendance reports"""
     subject = forms.ModelChoiceField(
         queryset=Subject.objects.all(),
         required=False,
@@ -120,4 +144,40 @@ class AttendanceFilterForm(forms.Form):
         choices=[('', 'All')] + list(Attendance.STATUS_CHOICES),
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    checkin_method = forms.ChoiceField(
+        choices=[('', 'All')] + list(Attendance.CHECKIN_METHODS),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+class QRCheckinForm(forms.Form):
+    """Form for student QR code self check-in"""
+    roll_no = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your roll number',
+            'autofocus': True
+        })
+    )
+    student_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your full name'
+        })
+    )
+
+
+class LowAttendanceFilterForm(forms.Form):
+    """Form for filtering low attendance report"""
+    threshold = forms.IntegerField(
+        min_value=0,
+        max_value=100,
+        initial=75,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Threshold %'
+        })
     )

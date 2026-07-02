@@ -11,20 +11,32 @@ urlpatterns = [
     #  DJANGO AUTH (Admin/University)
     path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     # path('accounts/logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/accounts/login/'), name='logout'),
+    # path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/accounts/login/'), name='logout'),
+    path('logout/', views.custom_logout, name='logout'),
     
     
     # ========== TEACHER AUTH (Independent) ==========
     path('teacher/login/', views.teacher_login, name='teacher_login'),
     path('teacher/logout/', views.teacher_logout, name='teacher_logout'),
  
-    # Attendance URLs
+   #========== Attendance Management ==========
     path('attendance/', views.attendance_dashboard, name='attendance_dashboard'),
     path('attendance/sessions/', views.session_list, name='session_list'),
     path('attendance/session/create/', views.session_create, name='session_create'),
     path('attendance/session/<int:session_id>/', views.session_detail, name='session_detail'),
+    
+    # Attendance Taking
     path('attendance/session/<int:session_id>/take/', views.take_attendance, name='take_attendance'),
     path('attendance/session/<int:session_id>/edit/', views.edit_attendance, name='edit_attendance'),
+    
+    
+    # QR Code System
+    path('attendance/session/<int:session_id>/qr/generate/', views.generate_qr, name='generate_qr'),
+    path('attendance/session/<int:session_id>/qr/display/', views.qr_display, name='qr_display'),
+    path('attendance/qr/<uuid:qr_uuid>/', views.qr_checkin, name='qr_checkin'),
+    path('attendance/qr/success/<int:attendance_id>/', views.qr_success, name='qr_success'),
+    
+    # Reports
     path('attendance/report/', views.attendance_report, name='attendance_report'),
     path('attendance/student/<int:student_id>/', views.student_attendance_detail, name='student_attendance_detail'),
     path('attendance/low-attendance/', views.low_attendance_report, name='low_attendance_report'),

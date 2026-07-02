@@ -1,67 +1,177 @@
 {% extends 'base.html' %}
 
-{% block title %}
-Edit Department
-{% endblock %}
+{% block title %}Edit {{ department.name }} - Department{% endblock %}
+{% block page_title %}Edit Department{% endblock %}
 
 {% block content %}
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
+<!-- Page Header -->
+<section class="card-shadow bg-surface-container rounded-xl p-md flex flex-col md:flex-row justify-between items-start md:items-center gap-md border border-outline-variant/30">
+    <div class="flex items-center gap-sm">
+        <a href="{% url 'department_detail' department.id %}" class="p-2 text-on-surface/60 hover:text-primary transition-all rounded-lg hover:bg-surface-container-high">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <span class="inline-block px-3 py-1 bg-warning/10 text-warning text-label-md font-label-md rounded-full mb-xs">Editing</span>
+            <h1 class="text-headline-lg font-headline-lg text-on-surface">Edit Department</h1>
+            <p class="text-body-md text-on-surface/60 mt-xs">Update information for {{ department.name }}</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-sm">
+        <div class="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-black text-lg">
+            {{ department.name|slice:":1"|upper }}
+        </div>
+        <span class="text-label-md font-label-md text-on-surface">{{ department.name }}</span>
+    </div>
+</section>
 
-        <div class="col-md-8">
+<!-- Form Card -->
+<section class="card-shadow bg-surface-container rounded-xl p-md lg:p-lg border border-outline-variant/30 max-w-3xl mx-auto">
+    <form method="POST" class="space-y-gutter">
+        {% csrf_token %}
 
-            <div class="card shadow-lg border-0">
-
-                <div class="card-header bg-warning text-dark">
-                    <h2 class="mb-0">
-                        Edit Department
-                    </h2>
-                </div>
-
-                <div class="card-body">
-
-                    <form method="POST">
-                        {% csrf_token %}
-
-                        {% for field in form %}
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">
-                                    {{ field.label }}
-                                </label>
-                                {{ field }}
-
-                                {% if field.errors %}
-                                    <div class="text-danger mt-1">
-                                        {{ field.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-
-                        <div class="d-flex justify-content-between">
-
-                            <a href="{% url 'department_list' %}"
-                               class="btn btn-secondary">
-                                Back
-                            </a>
-
-                            <button type="submit"
-                                    class="btn btn-warning">
-                                Update Department
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
+        <!-- Form Errors -->
+        {% if form.non_field_errors %}
+        <div class="p-md bg-error/10 border border-error/30 rounded-xl flex items-start gap-sm">
+            <span class="material-symbols-outlined text-error mt-0.5">error</span>
+            <div class="text-body-md text-error">
+                {{ form.non_field_errors }}
             </div>
+        </div>
+        {% endif %}
 
+        <!-- Fields -->
+        <div class="space-y-md">
+            {% for field in form %}
+            <div class="field-group">
+                <label for="{{ field.id_for_label }}" class="block text-label-md font-label-md text-on-surface/70 uppercase tracking-wider mb-xs">
+                    {{ field.label }}
+                </label>
+
+                {{ field }}
+
+                {% if field.help_text %}
+                <p class="mt-1 text-[12px] text-outline">{{ field.help_text }}</p>
+                {% endif %}
+
+                {% if field.errors %}
+                <div class="mt-1 flex items-center gap-xs text-error text-[12px]">
+                    <span class="material-symbols-outlined text-sm">error</span>
+                    {{ field.errors }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
         </div>
 
-    </div>
-</div>
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-sm pt-md border-t border-outline-variant/30">
+            <button type="submit" class="flex items-center justify-center gap-xs px-8 py-3 bg-primary-container text-on-primary rounded-xl font-bold shadow-md hover:opacity-90 transition-all active:scale-95">
+                <span class="material-symbols-outlined">save</span>
+                Update Department
+            </button>
+            <a href="{% url 'department_list' %}" class="flex items-center justify-center gap-xs px-8 py-3 bg-surface-container-high text-on-surface rounded-xl font-bold border border-outline-variant/30 hover:bg-surface-container-highest transition-all active:scale-95">
+                <span class="material-symbols-outlined">arrow_back</span>
+                Back to Departments
+            </a>
+        </div>
+    </form>
+</section>
 
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Style all form inputs generated by the field loop */
+    .field-group input[type="text"],
+    .field-group input[type="email"],
+    .field-group input[type="number"],
+    .field-group input[type="date"],
+    .field-group input[type="tel"],
+    .field-group input[type="url"],
+    .field-group select,
+    .field-group textarea {
+        width: 100%;
+        padding: 12px 16px;
+        background: #23222a;
+        border: 1px solid #464555;
+        border-radius: 12px;
+        color: #f2effc;
+        font-size: 14px;
+        line-height: 20px;
+        transition: all 0.2s ease;
+    }
+
+    .field-group input:focus,
+    .field-group select:focus,
+    .field-group textarea:focus {
+        outline: none;
+        border-color: #3525cd;
+        box-shadow: 0 0 0 3px rgba(53, 37, 205, 0.2);
+    }
+
+    .field-group input::placeholder,
+    .field-group textarea::placeholder {
+        color: #777587;
+    }
+
+    .field-group select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23777587' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 18px;
+        padding-right: 40px;
+    }
+
+    .field-group select option {
+        background: #23222a;
+        color: #f2effc;
+    }
+
+    .field-group input[type="file"] {
+        padding: 10px 16px;
+        background: #23222a;
+        border: 2px dashed #464555;
+        border-radius: 12px;
+        color: #f2effc;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .field-group input[type="file"]:hover {
+        border-color: #c3c0ff;
+    }
+
+    .field-group input[type="checkbox"],
+    .field-group input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        accent-color: #3525cd;
+        cursor: pointer;
+    }
+
+    /* Error state */
+    .field-group:has(.text-error) input,
+    .field-group:has(.text-error) select,
+    .field-group:has(.text-error) textarea {
+        border-color: #ffb4ab;
+        box-shadow: 0 0 0 3px rgba(255, 180, 171, 0.15);
+    }
+
+    /* Two-column layout for larger screens */
+    @media (min-width: 768px) {
+        form .space-y-md {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .field-group:has(textarea),
+        .field-group:has(input[type="file"]) {
+            grid-column: 1 / -1;
+        }
+    }
+</style>
 {% endblock %}

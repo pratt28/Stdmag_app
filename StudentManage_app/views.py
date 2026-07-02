@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models.functions import TruncMonth
 from collections import defaultdict
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, Case, When, FloatField, F
 import json
 from django.db import transaction
 from django.utils import timezone
@@ -17,20 +17,28 @@ from functools import wraps
 from .forms import StudentForm, DepartmentForm, SubjectForm, SubjectSelectForm
 from .models import (Student, Department, Teacher, Fee, Attendance, Result, Subject,AttendanceSession, TeacherSubject)
 import time
+from collections import defaultdict
+import qrcode
+import qrcode.image.svg
+from io import BytesIO
+from django.http import HttpResponse
+from django.urls import reverse
+from .forms import (
+    AttendanceSessionForm, 
+    AttendanceFilterForm, 
+    LowAttendanceFilterForm, 
+    QRCheckinForm
+)
+from .models import AttendanceSession, Attendance, Subject, Student, Department, Teacher
+# from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import never_cache
 
 
-
-# TEACHER AUTHENTICATION ("""Helper to get current teacher from session""")
-def get_current_teacher(request):
-    teacher_id = request.session.get('teacher_id')
-    if teacher_id:
-        try:
-            return Teacher.objects.get(id=teacher_id, status=True)
-        except Teacher.DoesNotExist:
-            if 'teacher_id' in request.session:
-                del request.session['teacher_id']
-    return None
-
+ 
+def custom_logout(request):
+    logout(request)
+    request.session.flush()
+    return redirect('/accounts/login/')
 
 """Decorator to check if teacher is logged in — WORKING VERSION"""
 def teacher_login_required(view_func):
@@ -113,7 +121,7 @@ def teacher_logout(request):
 # ============================================================
 # ADMIN DASHBOARD (Django Auth)
 # ============================================================
-
+ 
 @login_required
 def dashboard(request):
     students = Student.objects.select_related('department').all()
@@ -159,6 +167,7 @@ def dashboard(request):
 # ============================================================
 # STUDENT CRUD (Admin)
 # ============================================================
+#  
 @login_required
 def student_list(request):
     students = Student.objects.all().order_by('-created_at')
@@ -178,7 +187,7 @@ def student_list(request):
     }
     return render(request, 'StudentManage_app/list.html', context)
 
-
+ 
 @login_required
 def add_student(request):
     if request.method == 'POST':
@@ -191,14 +200,14 @@ def add_student(request):
     context = {'form': form}
     return render(request, 'StudentManage_app/add.html', context)
 
-
+ 
 @login_required
 def student_detail(request, id):
     student = get_object_or_404(Student, id=id)
     context = {'student': student}
     return render(request, 'StudentManage_app/detail.html', context)
 
-
+ 
 @login_required
 def edit_student(request, id):
     student = get_object_or_404(Student, id=id)
@@ -212,7 +221,7 @@ def edit_student(request, id):
     context = {'form': form, 'student': student}
     return render(request, 'StudentManage_app/edit.html', context)
 
-
+ 
 @login_required
 def delete_student(request, id):
     student = get_object_or_404(Student, id=id)
@@ -235,6 +244,7 @@ def department_list(request):
     })
 
 
+ 
 @login_required
 def add_department(request):
     if request.method == 'POST':
@@ -247,14 +257,14 @@ def add_department(request):
     context = {'form': form}
     return render(request, 'StudentManage_app/add_department.html', context)
 
-
+ 
 @login_required
 def department_detail(request, id):
     department = get_object_or_404(Department, id=id)
     context = {'department': department}
     return render(request, 'StudentManage_app/department_detail.html', context)
 
-
+ 
 @login_required
 def edit_department(request, id):
     department = get_object_or_404(Department, id=id)
@@ -268,7 +278,7 @@ def edit_department(request, id):
     context = {'form': form, 'department': department}
     return render(request, 'StudentManage_app/edit_department.html', context)
 
-
+ 
 @login_required
 def delete_department(request, id):
     department = get_object_or_404(Department, id=id)
@@ -279,7 +289,7 @@ def delete_department(request, id):
 # ============================================================
 # SUBJECT CRUD (Admin)
 # ============================================================
-
+ 
 @login_required
 def subject_list(request):
     departments = Department.objects.annotate(
@@ -289,6 +299,7 @@ def subject_list(request):
     context = {'departments': departments}
     return render(request, 'StudentManage_app/sub/subject_list.html', context)
 
+ 
 @login_required
 def subject_select(request):
     """Select an existing subject"""
@@ -305,6 +316,9 @@ def subject_select(request):
         'subjects': Subject.objects.all().order_by('subject_name')
     })
 
+
+
+ 
 @login_required
 def subject_department_list(request, department_id):
     department = get_object_or_404(Department, id=department_id)
@@ -329,6 +343,8 @@ def subject_department_list(request, department_id):
     return render(request, 'StudentManage_app/sub/subject_department_list.html', context)
 
 
+
+ 
 @login_required
 def subject_create(request):
     if request.method == 'POST':
@@ -347,6 +363,8 @@ def subject_detail(request, id):
     return render(request, 'StudentManage_app/sub/subject_detail.html', {'subject': subject})
 
 
+
+ 
 @login_required
 def subject_update(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
@@ -360,6 +378,8 @@ def subject_update(request, pk):
     return render(request, 'StudentManage_app/sub/subject_form.html', {'form': form})
 
 
+
+ 
 @login_required
 def subject_delete(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
@@ -372,13 +392,14 @@ def subject_delete(request, pk):
 # ============================================================
 # TEACHER CRUD (Admin)
 # ============================================================
-
+ 
 @login_required
 def teacher_list(request):
     teachers = Teacher.objects.all()
     return render(request, "StudentManage_app/tech/teachers.html", {"teachers": teachers})
 
 
+ 
 @login_required
 def add_teacher(request):
     departments = Department.objects.all()
@@ -450,6 +471,7 @@ def add_teacher(request):
     })
 
 
+ 
 @login_required
 def teacher_detail(request, id):
     teacher = get_object_or_404(Teacher, id=id)
@@ -460,6 +482,8 @@ def teacher_detail(request, id):
     return render(request, 'StudentManage_app/tech/teacher_detail.html', context)
 
 
+
+ 
 @login_required
 def edit_teacher(request, id):
     teacher = get_object_or_404(Teacher, id=id)
@@ -472,6 +496,8 @@ def edit_teacher(request, id):
     return render(request, 'StudentManage_app/tech/edit_teacher.html', {'teacher': teacher})
 
 
+
+ 
 @login_required
 def delete_teacher(request, id):
     teacher = get_object_or_404(Teacher, id=id)
@@ -482,13 +508,27 @@ def delete_teacher(request, id):
 # ============================================================
 # ATTENDANCE (Teacher Portal)
 # ============================================================
+
+
+# TEACHER AUTHENTICATION ("""Helper to get current teacher from session""")
+def get_teacher(request):
+    teacher_id = request.session.get('teacher_id')
+    if teacher_id:
+        try:
+            return Teacher.objects.get(id=teacher_id, status=True)
+        except Teacher.DoesNotExist:
+            if 'teacher_id' in request.session:
+                del request.session['teacher_id']
+    return None
+
+
 @teacher_login_required
 def attendance_dashboard(request):
-    """Main attendance dashboard — STRICT teacher-only access"""
-    teacher = request.teacher  # Set by decorator
-    
+    """Modern attendance dashboard with analytics"""
+    teacher = get_teacher(request)
     today = timezone.now().date()
     
+    # Teacher's stats
     my_sessions_today = AttendanceSession.objects.filter(
         teacher=teacher, date=today
     ).count()
@@ -499,25 +539,35 @@ def attendance_dashboard(request):
         teacher=teacher
     ).select_related('subject').order_by('-date', '-start_time')[:10]
     
+    # Global stats
     total_students = Student.objects.count()
     today_records = Attendance.objects.filter(session__date=today)
     present_today = today_records.filter(status='Present').count()
     absent_today = today_records.filter(status='Absent').count()
+    late_today = today_records.filter(status='Late').count()
     
-    # Department stats (last 7 days)
+    # Department stats (last 7 days) — FIXED: use correct reverse relation
     last_7_days = today - timezone.timedelta(days=7)
+    
     dept_stats = []
     for dept in Department.objects.all():
+        # Get all students in this department
+        dept_student_ids = Student.objects.filter(department=dept).values_list('id', flat=True)
+        
+        # Count attendance for these students in last 7 days
         total = Attendance.objects.filter(
             session__date__gte=last_7_days,
-            student__department=dept
+            student_id__in=dept_student_ids
         ).count()
+        
         present = Attendance.objects.filter(
             session__date__gte=last_7_days,
-            student__department=dept,
+            student_id__in=dept_student_ids,
             status='Present'
         ).count()
+        
         percentage = (present / total * 100) if total > 0 else 0
+        
         dept_stats.append({
             'name': dept.name,
             'total': total,
@@ -532,74 +582,153 @@ def attendance_dashboard(request):
         'total_students': total_students,
         'present_today': present_today,
         'absent_today': absent_today,
+        'late_today': late_today,
         'recent_sessions': recent_sessions,
         'dept_stats': dept_stats,
     }
     
-    # CRITICAL: Must return the render response
     return render(request, 'StudentManage_app/attendance/dashboard.html', context)
+
 
 @teacher_login_required
 def session_create(request):
-    teacher = get_current_teacher(request)
+    """Create new attendance session with grouped subjects"""
+    from collections import defaultdict
+    teacher = get_teacher(request)
     
     if request.method == 'POST':
-        subject_id = request.POST.get('subject')
-        period = request.POST.get('period')
-        date = request.POST.get('date')
-        start_time = request.POST.get('start_time') or '09:00'
-        end_time = request.POST.get('end_time') or '10:00'
-        
-        if not date:
-            messages.error(request, "Date is required.")
-            return redirect('session_create')
-        if not subject_id:
-            messages.error(request, "Subject is required.")
-            return redirect('session_create')
-        if not period:
-            messages.error(request, "Period is required.")
-            return redirect('session_create')
-        
-        if AttendanceSession.objects.filter(subject_id=subject_id, teacher=teacher, date=date, period=period).exists():
-            messages.error(request, "A session already exists for this subject, date and period.")
-            return redirect('session_create')
-        
-        session = AttendanceSession.objects.create(
-            subject_id=subject_id,
-            teacher=teacher,
-            date=date,
-            period=period,
-            start_time=start_time,
-            end_time=end_time
-        )
-        messages.success(request, "Attendance session created successfully!")
-        return redirect('take_attendance', session_id=session.id)
+        form = AttendanceSessionForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            if AttendanceSession.objects.filter(
+                subject=data['subject'], teacher=teacher, 
+                date=data['date'], period=data['period']
+            ).exists():
+                messages.error(request, "A session already exists for this subject, date and period.")
+                return redirect('session_create')
+            
+            session = form.save(commit=False)
+            session.teacher = teacher
+            session.status = 'scheduled'
+            session.save()
+            
+            messages.success(request, "Attendance session created successfully!")
+            return redirect('take_attendance', session_id=session.id)
+    else:
+        form = AttendanceSessionForm()
     
-    subjects = Subject.objects.all()
-    context = {'subjects': subjects, 'teacher': teacher}
+    # Group subjects for template - CONVERT ALL TO REGULAR DICTS
+    subjects_grouped = {}
+    for subject in Subject.objects.select_related('department').order_by('department__name', 'year', 'semester', 'subject_name'):
+        dept_name = subject.department.name
+        year_sem = f"{subject.get_year_display()}, {subject.get_semester_display()}"
+        
+        if dept_name not in subjects_grouped:
+            subjects_grouped[dept_name] = {}
+        if year_sem not in subjects_grouped[dept_name]:
+            subjects_grouped[dept_name][year_sem] = []
+        
+        subjects_grouped[dept_name][year_sem].append(subject)
+    
+    context = {
+        'form': form,
+        'teacher': teacher,
+        'subjects_grouped': subjects_grouped,
+    }
     return render(request, 'StudentManage_app/attendance/session_form.html', context)
+
 
 @teacher_login_required
 def session_list(request):
-    """List all attendance sessions for the logged-in teacher"""
-    teacher = request.teacher
+    """List all sessions with filtering"""
+    teacher = get_teacher(request)
     
-    # Get all sessions for this teacher, newest first
     sessions = AttendanceSession.objects.filter(
         teacher=teacher
-    ).select_related('subject').order_by('-date', '-start_time')
+    ).select_related('subject').annotate(
+        attendance_rate=Case(
+            When(total_students__gt=0, then=F('present_count') * 100.0 / F('total_students')),
+            default=0,
+            output_field=FloatField()
+        )
+    ).order_by('-date', '-start_time')
+    
+    # Filters
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    subject_id = request.GET.get('subject')
+    status_filter = request.GET.get('status')
+    
+    if date_from:
+        sessions = sessions.filter(date__gte=date_from)
+    if date_to:
+        sessions = sessions.filter(date__lte=date_to)
+    if subject_id:
+        sessions = sessions.filter(subject_id=subject_id)
+    if status_filter:
+        sessions = sessions.filter(status=status_filter)
     
     # Stats
     total_sessions = sessions.count()
     today_sessions = sessions.filter(date=timezone.now().date()).count()
+    completed_sessions = sessions.filter(is_completed=True).count()
+    
+    subjects = Subject.objects.all()
     
     return render(request, 'StudentManage_app/attendance/session_list.html', {
         'teacher': teacher,
         'sessions': sessions,
+        'subjects': subjects,
         'total_sessions': total_sessions,
         'today_sessions': today_sessions,
+        'completed_sessions': completed_sessions,
     })
-# views.py
+
+
+@teacher_login_required
+def session_detail(request, session_id):
+    """Session detail with full analytics"""
+    session = get_object_or_404(
+        AttendanceSession.objects.select_related('subject', 'teacher'), 
+        id=session_id
+    )
+    teacher = get_teacher(request)
+    
+    if session.teacher != teacher and not teacher.is_teacher_admin:
+        messages.error(request, "You can only view your own sessions.")
+        return redirect('session_list')
+    
+    records = session.records.select_related('student').order_by('student__roll_no')
+    
+    # Stats — FIXED: all four counts
+    total = records.count()
+    present = records.filter(status='Present').count()
+    absent = records.filter(status='Absent').count()
+    late = records.filter(status='Late').count()
+    excused = records.filter(status='Excused').count()
+    
+    # Check-in methods breakdown
+    qr_checkins = records.filter(checkin_method='qr_scan').count()
+    manual_checkins = records.filter(checkin_method='manual').count()
+    
+    context = {
+        'session': session,
+        'records': records,
+        'teacher': teacher,
+        'stats': {
+            'total': total,
+            'present': present,
+            'absent': absent,
+            'late': late,
+            'excused': excused,
+            'percentage': round((present / total * 100), 1) if total else 0,
+            'qr_checkins': qr_checkins,
+            'manual_checkins': manual_checkins,
+        }
+    }
+    return render(request, 'StudentManage_app/attendance/session_detail.html', context)
+
+# ============ ATTENDANCE TAKING ============
 @teacher_login_required
 def attendance_sessions(request):
     """List all attendance sessions for the logged-in teacher"""
@@ -612,8 +741,9 @@ def attendance_sessions(request):
 
 @teacher_login_required
 def take_attendance(request, session_id):
+    """Take attendance — manual or prepare for QR"""
     session = get_object_or_404(AttendanceSession, id=session_id)
-    teacher = get_current_teacher(request)
+    teacher = get_teacher(request)
     
     if session.teacher != teacher and not teacher.is_teacher_admin:
         messages.error(request, "You can only take attendance for your own sessions.")
@@ -623,14 +753,14 @@ def take_attendance(request, session_id):
         messages.warning(request, "This session is already completed.")
         return redirect('session_detail', session_id=session.id)
     
+    # Get eligible students
     students = Student.objects.filter(
         department=session.subject.department,
         year=session.subject.year
     ).order_by('roll_no')
     
     if request.method == 'POST':
-        present_count = 0
-        absent_count = 0
+        present_count = absent_count = late_count = excused_count = 0
         
         with transaction.atomic():
             for student in students:
@@ -640,21 +770,38 @@ def take_attendance(request, session_id):
                 Attendance.objects.update_or_create(
                     session=session,
                     student=student,
-                    defaults={'status': status, 'remarks': remark}
+                    defaults={
+                        'status': status, 
+                        'remarks': remark,
+                        'marked_by': teacher,
+                        'checkin_method': 'manual'
+                    }
                 )
                 
+                # FIXED: Proper counting for all statuses
                 if status == 'Present':
                     present_count += 1
-                else:
+                elif status == 'Absent':
                     absent_count += 1
+                elif status == 'Late':
+                    late_count += 1
+                elif status == 'Excused':
+                    excused_count += 1
             
             session.is_completed = True
+            session.status = 'completed'
             session.total_students = students.count()
             session.present_count = present_count
             session.absent_count = absent_count
+            session.late_count = late_count
+            session.excused_count = excused_count
             session.save()
         
-        messages.success(request, f"Attendance saved! Present: {present_count}, Absent: {absent_count}")
+        messages.success(
+            request, 
+            f"Attendance saved! Present: {present_count}, Absent: {absent_count}, "
+            f"Late: {late_count}, Excused: {excused_count}"
+        )
         return redirect('session_detail', session_id=session.id)
     
     existing_records = {rec.student_id: rec for rec in session.records.all()}
@@ -670,132 +817,42 @@ def take_attendance(request, session_id):
 
 
 @teacher_login_required
-def session_detail(request, session_id):
-    session = get_object_or_404(AttendanceSession.objects.select_related('subject', 'teacher'), id=session_id)
-    teacher = get_current_teacher(request)
-    
-    if session.teacher != teacher and not teacher.is_teacher_admin:
-        messages.error(request, "You can only view your own sessions.")
-        return redirect('session_list')
-    
-    records = session.records.select_related('student').order_by('student__roll_no')
-    
-    total = records.count()
-    present = records.filter(status='Present').count()
-    absent = records.filter(status='Absent').count()
-    late = records.filter(status='Late').count()
-    
-    context = {
-        'session': session,
-        'records': records,
-        'teacher': teacher,
-        'stats': {
-            'total': total,
-            'present': present,
-            'absent': absent,
-            'late': late,
-            'percentage': round((present / total * 100), 1) if total else 0
-        }
-    }
-    return render(request, 'StudentManage_app/attendance/session_detail.html', context)
-
-
-@teacher_login_required
-def attendance_report(request):
-    teacher = get_current_teacher(request)
-    records = Attendance.objects.select_related('student', 'session', 'session__subject').filter(session__teacher=teacher).order_by('-session__date')
-    
-    subject_id = request.GET.get('subject')
-    student_id = request.GET.get('student')
-    date_from = request.GET.get('date_from')
-    date_to = request.GET.get('date_to')
-    status = request.GET.get('status')
-    
-    if subject_id:
-        records = records.filter(session__subject_id=subject_id)
-    if student_id:
-        records = records.filter(student_id=student_id)
-    if date_from:
-        records = records.filter(session__date__gte=date_from)
-    if date_to:
-        records = records.filter(session__date__lte=date_to)
-    if status:
-        records = records.filter(status=status)
-    
-    subjects = Subject.objects.all()
-    students = Student.objects.all()
-    
-    context = {
-        'records': records,
-        'subjects': subjects,
-        'students': students,
-        'total_records': records.count(),
-        'teacher': teacher,
-    }
-    return render(request, 'StudentManage_app/attendance/attendance_report.html', context)
-
-
-@teacher_login_required
-def student_attendance_detail(request, student_id):
-    student = get_object_or_404(Student, id=student_id)
-    teacher = get_current_teacher(request)
-    
-    attendances = student.attendances.select_related('session', 'session__subject').filter(session__teacher=teacher).order_by('-session__date')
-    
-    total = attendances.count()
-    present = attendances.filter(status='Present').count()
-    absent = attendances.filter(status='Absent').count()
-    late = attendances.filter(status='Late').count()
-    
-    subject_stats = []
-    subjects = Subject.objects.filter(department=student.department, year=student.year)
-    for subject in subjects:
-        sub_total = attendances.filter(session__subject=subject).count()
-        sub_present = attendances.filter(session__subject=subject, status='Present').count()
-        sub_percentage = (sub_present / sub_total * 100) if sub_total > 0 else 0
-        subject_stats.append({
-            'name': subject.subject_name,
-            'total': sub_total,
-            'present': sub_present,
-            'percentage': round(sub_percentage, 1)
-        })
-    
-    context = {
-        'student': student,
-        'attendances': attendances,
-        'teacher': teacher,
-        'stats': {
-            'total': total,
-            'present': present,
-            'absent': absent,
-            'late': late,
-            'percentage': round((present / total * 100), 1) if total else 0
-        },
-        'subject_stats': subject_stats,
-    }
-    return render(request, 'StudentManage_app/attendance/student_detail.html', context)
-
-
-@teacher_login_required
 def edit_attendance(request, session_id):
+    """Edit attendance records"""
     session = get_object_or_404(AttendanceSession, id=session_id)
-    teacher = get_current_teacher(request)
+    teacher = get_teacher(request)
     
     if session.teacher != teacher and not teacher.is_teacher_admin:
         messages.error(request, "You can only edit your own sessions.")
         return redirect('session_list')
     
     if request.method == 'POST':
+        present_count = absent_count = late_count = excused_count = 0
+        
         with transaction.atomic():
             for record in session.records.all():
                 new_status = request.POST.get(f'student_{record.student.id}', record.status)
                 new_remark = request.POST.get(f'remark_{record.student.id}', record.remarks or '')
+                
                 record.status = new_status
                 record.remarks = new_remark
+                record.marked_by = teacher
                 record.save()
+                
+                # FIXED: Proper counting
+                if new_status == 'Present':
+                    present_count += 1
+                elif new_status == 'Absent':
+                    absent_count += 1
+                elif new_status == 'Late':
+                    late_count += 1
+                elif new_status == 'Excused':
+                    excused_count += 1
             
-            session.present_count = session.records.filter(status='Present').count()
-            session.absent_count = session.records.filter(status='Absent').count()
+            session.present_count = present_count
+            session.absent_count = absent_count
+            session.late_count = late_count
+            session.excused_count = excused_count
             session.save()
         
         messages.success(request, "Attendance updated successfully!")
@@ -810,40 +867,312 @@ def edit_attendance(request, session_id):
     }
     return render(request, 'StudentManage_app/attendance/edit_attendance.html', context)
 
+# ============ QR CODE SYSTEM ============(new added)
+
+
+@teacher_login_required
+def generate_qr(request, session_id):
+    """Generate QR code for student self check-in"""
+    session = get_object_or_404(AttendanceSession, id=session_id)
+    teacher = get_teacher(request)
+    
+    if session.teacher != teacher:
+        messages.error(request, "You can only generate QR for your own sessions.")
+        return redirect('session_list')
+    
+    if session.is_completed:
+        messages.warning(request, "Cannot generate QR for completed session.")
+        return redirect('session_detail', session_id=session.id)
+    
+    # Generate/refresh QR
+    session.regenerate_qr(minutes_valid=15)
+    session.status = 'ongoing'
+    session.save(update_fields=['status'])
+    
+    # Build QR URL
+    qr_url = request.build_absolute_uri(
+        reverse('qr_checkin', kwargs={'qr_uuid': session.qr_uuid})
+    )
+    
+    # Generate QR image as SVG
+    qr_svg = None
+    try:
+        import qrcode
+        import qrcode.image.svg
+        from io import BytesIO
+        
+        print("=" * 50)
+        print("Generating QR for URL:", qr_url)
+        
+        factory = qrcode.image.svg.SvgImage
+        qr = qrcode.make(qr_url, image_factory=factory)
+        buffer = BytesIO()
+        qr.save(buffer)
+        qr_svg = buffer.getvalue().decode('utf-8')
+        
+        print("QR SVG LENGTH:", len(qr_svg))
+        print("QR SVG START:", qr_svg[:200])
+        print("=" * 50)
+        
+    except Exception as e:
+        print("QR GENERATION ERROR:", str(e))
+        import traceback
+        traceback.print_exc()
+    
+    messages.success(request, f"QR Code generated! Valid for 15 minutes.")
+    
+    context = {
+        'session': session,
+        'qr_svg': qr_svg,
+        'qr_url': qr_url,
+        'expires_at': session.qr_expires_at,
+        'is_valid': session.is_qr_valid,
+    }
+    return render(request, 'StudentManage_app/attendance/qr_display.html', context)
+
+@teacher_login_required
+def qr_display(request, session_id):
+    """Display QR code for students to scan"""
+    session = get_object_or_404(AttendanceSession, id=session_id)
+    teacher = get_teacher(request)
+    
+    if session.teacher != teacher:
+        messages.error(request, "Access denied.")
+        return redirect('session_list')
+    
+    qr_url = request.build_absolute_uri(
+        reverse('qr_checkin', kwargs={'qr_uuid': session.qr_uuid})
+    )
+    
+    # Generate SVG QR
+    factory = qrcode.image.svg.SvgImage
+    qr = qrcode.make(qr_url, image_factory=factory)
+    buffer = BytesIO()
+    qr.save(buffer)
+    qr_svg = buffer.getvalue().decode('utf-8')
+    
+    context = {
+        'session': session,
+        'qr_svg': qr_svg,
+        'qr_url': qr_url,
+        'expires_at': session.qr_expires_at,
+        'is_valid': session.is_qr_valid,
+    }
+    return render(request, 'StudentManage_app/attendance/qr_display.html', context)
+
+def qr_checkin(request, qr_uuid):
+    """Student self check-in via QR code scan using form"""
+    session = get_object_or_404(AttendanceSession, qr_uuid=qr_uuid)
+    
+    if not session.is_qr_valid:
+        messages.error(request, "This QR code has expired.")
+        return redirect('teacher_login')
+    
+    if session.is_completed:
+        messages.error(request, "This session has already been completed.")
+        return redirect('teacher_login')
+    
+    form = QRCheckinForm(request.POST or None)
+    
+    if request.method == 'POST' and form.is_valid():
+        roll_no = form.cleaned_data['roll_no']
+        student_name = form.cleaned_data['student_name']
+        
+        try:
+            student = Student.objects.get(roll_no=roll_no, name__iexact=student_name)
+            
+            # Verify eligibility
+            if not Student.objects.filter(
+                id=student.id,
+                department=session.subject.department,
+                year=session.subject.year
+            ).exists():
+                messages.error(request, "You are not eligible for this session.")
+                return redirect('qr_checkin', qr_uuid=qr_uuid)
+            
+            attendance, created = Attendance.objects.get_or_create(
+                session=session,
+                student=student,
+                defaults={
+                    'status': 'Present',
+                    'checkin_method': 'qr_scan',
+                    'checked_in_at': timezone.now()
+                }
+            )
+            
+            if not created:
+                messages.warning(request, "Your attendance was already recorded.")
+            else:
+                messages.success(request, f"Attendance marked as Present!")
+            
+            return redirect('qr_success', attendance_id=attendance.id)
+            
+        except Student.DoesNotExist:
+            messages.error(request, "Invalid roll number or name.")
+    
+    context = {
+        'form': form,
+        'session': session,
+        'subject': session.subject,
+        'expires_in': int((session.qr_expires_at - timezone.now()).total_seconds() / 60),
+    }
+    return render(request, 'StudentManage_app/attendance/qr_checkin.html', context)
+
+def qr_success(request, attendance_id):
+    """Success page after QR check-in"""
+    attendance = get_object_or_404(
+        Attendance.objects.select_related('session', 'session__subject', 'student'),
+        id=attendance_id
+    )
+    return render(request, 'StudentManage_app/attendance/qr_success.html', {
+        'attendance': attendance
+    })
+
+
+# ============ REPORTS ============
+
+@teacher_login_required
+def attendance_report(request):
+    """Advanced attendance report with filter form"""
+    teacher = get_teacher(request)
+    
+    # Initialize form with GET data
+    form = AttendanceFilterForm(request.GET or None)
+    
+    records = Attendance.objects.select_related(
+        'student', 'session', 'session__subject'
+    ).filter(session__teacher=teacher).order_by('-session__date')
+    
+    # Apply filters from form
+    if form.is_valid():
+        data = form.cleaned_data
+        if data.get('subject'):
+            records = records.filter(session__subject=data['subject'])
+        if data.get('student'):
+            records = records.filter(student=data['student'])
+        if data.get('date_from'):
+            records = records.filter(session__date__gte=data['date_from'])
+        if data.get('date_to'):
+            records = records.filter(session__date__lte=data['date_to'])
+        if data.get('status'):
+            records = records.filter(status=data['status'])
+        if data.get('checkin_method'):
+            records = records.filter(checkin_method=data['checkin_method'])
+    
+    # Summary stats
+    total_records = records.count()
+    present_count = records.filter(status='Present').count()
+    qr_count = records.filter(checkin_method='qr_scan').count()
+    
+    context = {
+        'form': form,
+        'records': records,
+        'total_records': total_records,
+        'present_count': present_count,
+        'qr_adoption': round((qr_count / total_records * 100), 1) if total_records else 0,
+        'teacher': teacher,
+    }
+    return render(request, 'StudentManage_app/attendance/attendance_report.html', context)
+
+@teacher_login_required
+def student_attendance_detail(request, student_id):
+    """Individual student attendance analytics"""
+    student = get_object_or_404(Student, id=student_id)
+    teacher = get_teacher(request)
+    
+    attendances = student.attendances.select_related(
+        'session', 'session__subject'
+    ).filter(session__teacher=teacher).order_by('-session__date')
+    
+    total = attendances.count()
+    present = attendances.filter(status='Present').count()
+    absent = attendances.filter(status='Absent').count()
+    late = attendances.filter(status='Late').count()
+    excused = attendances.filter(status='Excused').count()
+    
+    # Subject-wise breakdown
+    subject_stats = []
+    subjects = Subject.objects.filter(department=student.department, year=student.year)
+    
+    for subject in subjects:
+        sub_total = attendances.filter(session__subject=subject).count()
+        sub_present = attendances.filter(session__subject=subject, status='Present').count()
+        sub_late = attendances.filter(session__subject=subject, status='Late').count()
+        sub_percentage = (sub_present / sub_total * 100) if sub_total > 0 else 0
+        
+        subject_stats.append({
+            'name': subject.subject_name,
+            'total': sub_total,
+            'present': sub_present,
+            'late': sub_late,
+            'percentage': round(sub_percentage, 1)
+        })
+    
+    context = {
+        'student': student,
+        'attendances': attendances,
+        'teacher': teacher,
+        'stats': {
+            'total': total,
+            'present': present,
+            'absent': absent,
+            'late': late,
+            'excused': excused,
+            'percentage': round((present / total * 100), 1) if total else 0
+        },
+        'subject_stats': subject_stats,
+    }
+    return render(request, 'StudentManage_app/attendance/student_detail.html', context)
+
+
 
 @teacher_login_required
 def low_attendance_report(request):
-    teacher = get_current_teacher(request)
+    """Low attendance report with threshold form"""
+    teacher = get_teacher(request)
+    
+    form = LowAttendanceFilterForm(request.GET or None)
     threshold = 75
     
-    students = Student.objects.filter(department__subjects__sessions__teacher=teacher).distinct()
-    low_attendance_students = []
+    if form.is_valid():
+        threshold = form.cleaned_data.get('threshold', 75)
     
-    for student in students:
-        total = student.attendances.filter(session__teacher=teacher).count()
-        if total == 0:
-            continue
-        present = student.attendances.filter(session__teacher=teacher, status='Present').count()
-        percentage = (present / total) * 100
-        
-        if percentage < threshold:
-            low_attendance_students.append({
-                'student': student,
-                'total': total,
-                'present': present,
-                'percentage': round(percentage, 1)
-            })
+    # OPTIMIZED: Using annotations instead of N+1 queries
+    students = Student.objects.filter(
+        attendances__session__teacher=teacher
+    ).annotate(
+        total=Count('attendances'),
+        present=Count('attendances', filter=Q(attendances__status='Present')),
+        absent=Count('attendances', filter=Q(attendances__status='Absent')),
+        late=Count('attendances', filter=Q(attendances__status='Late'))
+    ).annotate(
+        percentage=Case(
+            When(total__gt=0, then=F('present') * 100.0 / F('total')),
+            default=0,
+            output_field=FloatField()
+        )
+    ).filter(percentage__lt=threshold).order_by('percentage')[:50]
     
-    low_attendance_students.sort(key=lambda x: x['percentage'])
+    # Build the list for template
+    low_attendance_students = [
+        {
+            'student': student,
+            'total': student.total,
+            'present': student.present,
+            'absent': student.absent,
+            'late': student.late,
+            'percentage': round(student.percentage, 1)
+        }
+        for student in students
+    ]
     
     context = {
+        'form': form,
         'students': low_attendance_students,
         'threshold': threshold,
         'teacher': teacher,
     }
     return render(request, 'StudentManage_app/attendance/low_attendance.html', context)
-
-
 # ============================================================
 # RESULTS & FEES
 # ============================================================

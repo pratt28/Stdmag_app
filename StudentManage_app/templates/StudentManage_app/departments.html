@@ -1,119 +1,139 @@
 {% extends 'base.html' %}
 
+{% block title %}Departments - Student Management{% endblock %}
+{% block page_title %}Departments{% endblock %}
+
 {% block content %}
 
-<div class="department-page">
+<!-- Page Header -->
+<section class="card-shadow bg-surface-container rounded-xl p-md flex flex-col md:flex-row justify-between items-start md:items-center gap-md border border-outline-variant/30">
+    <div>
+        <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-label-md font-label-md rounded-full mb-xs">Academic Structure</span>
+        <h1 class="text-headline-lg font-headline-lg text-on-surface">Departments</h1>
+        <p class="text-body-md text-on-surface/60 mt-xs">Manage department records, HOD details, and student strength.</p>
+    </div>
+    <a href="{% url 'add_department' %}" class="flex items-center gap-xs px-6 py-3 bg-primary-container text-on-primary rounded-xl font-bold shadow-md hover:opacity-90 transition-all active:scale-95">
+        <span class="material-symbols-outlined">add</span>
+        Add Department
+    </a>
+</section>
 
-    <div class="department-hero">
+<!-- Summary Cards -->
+<section class="grid grid-cols-1 sm:grid-cols-3 gap-gutter">
+    <div class="card-shadow bg-surface-container rounded-xl p-md border border-outline-variant/30 flex flex-col items-center text-center">
+        <div class="p-3 bg-primary/10 rounded-xl mb-xs">
+            <span class="material-symbols-outlined text-2xl text-primary">business</span>
+        </div>
+        <div class="text-headline-lg font-headline-lg text-on-surface">{{ departments|length }}</div>
+        <div class="text-label-md font-label-md text-on-surface/50 uppercase tracking-wider">Total Departments</div>
+    </div>
+    <div class="card-shadow bg-surface-container rounded-xl p-md border border-outline-variant/30 flex flex-col items-center text-center">
+        <div class="p-3 bg-success/10 rounded-xl mb-xs">
+            <span class="material-symbols-outlined text-2xl text-success">person_apron</span>
+        </div>
+        <div class="text-headline-lg font-headline-lg text-on-surface">{{ hod_count|default:"0" }}</div>
+        <div class="text-label-md font-label-md text-on-surface/50 uppercase tracking-wider">Listed HODs</div>
+    </div>
+    <div class="card-shadow bg-surface-container rounded-xl p-md border border-outline-variant/30 flex flex-col items-center text-center">
+        <div class="p-3 bg-emerald-500/10 rounded-xl mb-xs">
+            <span class="material-symbols-outlined text-2xl text-emerald-400">check_circle</span>
+        </div>
+        <div class="text-headline-lg font-headline-lg text-on-surface">Active</div>
+        <div class="text-label-md font-label-md text-on-surface/50 uppercase tracking-wider">Records Status</div>
+    </div>
+</section>
+
+<!-- Department Table -->
+<section class="card-shadow bg-surface-container rounded-xl border border-outline-variant/30 overflow-hidden">
+    <div class="p-md border-b border-outline-variant/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-sm">
         <div>
-            <span class="department-kicker">Academic Structure</span>
-            <h1>Departments</h1>
-            <p>Manage department records, HOD details, and student strength.</p>
-        </div>
-
-        <a href="{% url 'add_department' %}" class="department-add-btn">
-            <i class="fas fa-plus"></i>
-            Add Department
-        </a>
-    </div>
-
-    <div class="department-summary-grid">
-        <div class="department-summary-card">
-            <span>Total Departments</span>
-            <strong>{{ departments|length }}</strong>
-        </div>
-
-        <div class="department-summary-card">
-            <span>Listed HODs</span>
-            <strong>{{ hod_count }}</strong>
-        </div>
-
-        <div class="department-summary-card">
-            <span>Records Status</span>
-            <strong>Active</strong>
+            <h2 class="text-headline-md font-headline-md text-on-surface">Department Directory</h2>
+            <p class="text-body-md text-on-surface/60">View, update, or remove department information.</p>
         </div>
     </div>
 
-    <div class="department-table-card">
-        <div class="department-table-header">
-            <div>
-                <h2>Department Directory</h2>
-                <p>View, update, or remove department information.</p>
-            </div>
-        </div>
-
-        <div class="department-table-wrap">
-            <table class="department-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>HOD</th>
-                        <th>Total Students</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for department in departments %}
-                    <tr>
-                        <td>
-                            <div class="department-name-cell">
-                                <span>{{ department.name|slice:":1" }}</span>
-                                <strong>{{ department.name }}</strong>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-outline-variant/30 bg-surface-container-low">
+                    <th class="text-left px-md py-3 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider">Name</th>
+                    <th class="text-left px-md py-3 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider">HOD</th>
+                    <th class="text-left px-md py-3 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider">Total Students</th>
+                    <th class="text-left px-md py-3 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for department in departments %}
+                <tr class="border-b border-outline-variant/20 hover:bg-surface-container-high/50 transition-colors group">
+                    <td class="px-md py-3">
+                        <div class="flex items-center gap-sm">
+                            <div class="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-black text-lg">
+                                {{ department.name|slice:":1"|upper }}
                             </div>
-                        </td>
-                        <td>
-                            {% if department.hod %}
-                                <a href="{% url 'teacher_detail' department.hod.id %}" 
-                                   class="hod-link" 
-                                   style="color: #667eea; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">
-                                        {{ department.hod.name|first|upper }}
-                                    </div>
-                                    <span>{{ department.hod.name }}</span>
-                                </a>
-                            {% else %}
-                                <span style="color: #94a3b8; font-style: italic;">— Not Assigned —</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <span class="student-count-pill">
-                                {{ department.total_students }} Students
-                            </span>
-                        </td>
-                        <td>
-                            <div class="department-actions">
-                                <a href="{% url 'department_detail' department.id %}" class="dept-btn dept-view">
-                                    <i class="fas fa-eye"></i>
-                                    View
-                                </a>
-                                <a href="{% url 'edit_department' department.id %}" class="dept-btn dept-edit">
-                                    <i class="fas fa-pen"></i>
-                                    Edit
-                                </a>
-                                <a href="{% url 'delete_department' department.id %}" class="dept-btn dept-delete">
-                                    <i class="fas fa-trash"></i>
-                                    Delete
-                                </a>
+                            <strong class="text-body-md font-bold text-on-surface">{{ department.name }}</strong>
+                        </div>
+                    </td>
+                    <td class="px-md py-3">
+                        {% if department.hod %}
+                        <a href="{% url 'teacher_detail' department.hod.id %}" class="flex items-center gap-xs group/hod">
+                            <div class="w-7 h-7 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-xs font-bold">
+                                {{ department.hod.name|first|upper }}
                             </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4">
-                            <div class="department-empty">
-                                <i class="fas fa-building"></i>
-                                <strong>No departments found</strong>
-                                <span>Add a department to start building your academic structure.</span>
+                            <span class="text-body-md text-primary group-hover/hod:underline transition-all">{{ department.hod.name }}</span>
+                        </a>
+                        {% else %}
+                        <span class="text-body-md text-outline italic">— Not Assigned —</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-md py-3">
+                        <span class="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full text-label-md font-label-md">
+                            {{ department.total_students|default:"0" }} Students
+                        </span>
+                    </td>
+                    <td class="px-md py-3">
+                        <div class="flex items-center gap-xs">
+                            <a href="{% url 'department_detail' department.id %}" 
+                                class="flex items-center gap-xs px-3 py-2 bg-primary-container/30 text-primary rounded-lg hover:bg-primary-container hover:text-on-primary transition-all text-label-md font-label-md"
+                                title="View">
+                                <span class="material-symbols-outlined text-sm">visibility</span>
+                                View
+                            </a>
+                            <a href="{% url 'edit_department' department.id %}" 
+                                class="flex items-center gap-xs px-3 py-2 bg-warning/10 text-warning rounded-lg hover:bg-warning hover:text-white transition-all text-label-md font-label-md"
+                                title="Edit">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                                Edit
+                            </a>
+                            <a href="{% url 'delete_department' department.id %}" 
+                                class="flex items-center gap-xs px-3 py-2 bg-error/10 text-error rounded-lg hover:bg-error hover:text-on-error transition-all text-label-md font-label-md"
+                                title="Delete"
+                                onclick="return confirm('Are you sure you want to delete {{ department.name }}?')">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                                Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-md py-xl text-center">
+                        <div class="flex flex-col items-center gap-sm">
+                            <div class="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                <span class="material-symbols-outlined text-4xl">business</span>
                             </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                            <div class="text-headline-md font-headline-md text-on-surface">No departments found</div>
+                            <p class="text-body-md text-on-surface/60">Add a department to start building your academic structure.</p>
+                            <a href="{% url 'add_department' %}" class="mt-sm px-6 py-3 bg-primary-container text-on-primary rounded-xl font-bold hover:opacity-90 transition-all">
+                                <span class="material-symbols-outlined align-middle mr-1">add</span>
+                                Add Department
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-
-</div>
+</section>
 
 {% endblock %}

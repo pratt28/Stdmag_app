@@ -1,0 +1,90 @@
+{% extends 'StudentManage_app/attendance/base.html' %}
+
+{% block title %}QR Code - {{ session.subject.subject_name }}{% endblock %}
+
+{% block content %}
+<div class="text-center" style="max-width: 500px; margin: 0 auto;">
+    <div class="page-header">
+        <h1>📱 QR Check-in</h1>
+        <p>{{ session.subject.subject_name }} | {{ session.date|date:"M d, Y" }} | {{ session.period }}</p>
+    </div>
+    
+    <div class="card" style="padding: 40px;">
+        <div style="margin-bottom: 20px;">
+            <span class="badge badge-success" style="font-size: 14px; padding: 8px 16px;">
+                ⏱️ Valid until {{ expires_at|time:"H:i" }}
+            </span>
+        </div>
+        
+        <!-- QR Code Image -->
+        <div style="background: white; padding: 20px; border-radius: 16px; border: 2px dashed #e2e8f0; display: inline-block;">
+            {% if qr_svg %}
+                <div id="qr-container" style="width: 250px; height: 250px;">
+                    <!-- SVG will be injected here -->
+                </div>
+            {% else %}
+                <div style="width: 250px; height: 250px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                    QR Code not available
+                </div>
+            {% endif %}
+        </div>
+        
+        <div style="margin-top: 25px; padding: 15px; background: #f8fafc; border-radius: 12px;">
+            <p style="color: #64748b; font-size: 13px; margin-bottom: 8px;">Or share this link:</p>
+            <code style="font-size: 12px; word-break: break-all;">{{ qr_url }}</code>
+        </div>
+        
+        <div style="margin-top: 20px; display: flex; gap: 15px; justify-content: center;">
+            <a href="{% url 'session_detail' session.id %}" class="btn btn-secondary">Back to Session</a>
+            <a href="{% url 'generate_qr' session.id %}" class="btn btn-primary">🔄 Regenerate QR</a>
+        </div>
+    </div>
+</div>
+
+{% if qr_svg %}
+<script>
+// Fix SVG namespace and inject
+document.addEventListener('DOMContentLoaded', function() {
+    var svgString = `{{ qr_svg|escapejs }}`;
+    
+    // Remove svg: namespace prefixes (they break in HTML)
+    svgString = svgString.replace(/svg:/g, '');
+    
+    // Fix xmlns if needed
+    if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
+        svgString = svgString.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+    }
+    
+    var container = document.getElementById('qr-container');
+    if (container) {
+        container.innerHTML = svgString;
+        
+        // Make SVG responsive
+        var svg = container.querySelector('svg');
+        if (svg) {
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.removeAttribute('width');
+            svg.removeAttribute('height');
+        }
+    }
+});
+</script>
+{% endif %}
+
+<script>
+// Auto-refresh when QR expires
+const expiresAt = new Date("{{ expires_at|date:'c' }}");
+const now = new Date();
+const timeUntilExpiry = expiresAt - now;
+
+if (timeUntilExpiry > 0) {
+    setTimeout(function() {
+        alert('QR Code expired! Please generate a new one.');
+        window.location.reload();
+    }, timeUntilExpiry);
+}
+</script>
+{% endblock %}

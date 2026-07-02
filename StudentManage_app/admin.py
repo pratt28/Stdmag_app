@@ -79,17 +79,59 @@ class SubjectAdmin(admin.ModelAdmin):
     list_display = ['subject_code', 'subject_name', 'department', 'year', 'semester', 'credits']
 
 
+
 @admin.register(AttendanceSession)
 class AttendanceSessionAdmin(admin.ModelAdmin):
-    list_display = ['subject', 'teacher', 'date', 'period', 'is_completed']
-    list_filter = ['date', 'is_completed']
+    list_display = [
+        'subject', 'teacher', 'date', 'period', 
+        'status', 'is_completed', 'attendance_percentage'
+    ]
+    list_filter = ['status', 'date', 'is_completed', 'subject__department']
+    search_fields = ['subject__subject_name', 'teacher__name', 'period']
+    readonly_fields = [
+        'qr_uuid', 'qr_enabled', 'qr_expires_at',
+        'created_at', 'updated_at', 'attendance_percentage'
+    ]
+    
+    fieldsets = (
+        ('Session Info', {
+            'fields': ('subject', 'teacher', 'date', 'period', 'start_time', 'end_time')
+        }),
+        ('Status', {
+            'fields': ('status', 'is_completed')
+        }),
+        ('Attendance Counts', {
+            'fields': ('total_students', 'present_count', 'absent_count', 'late_count', 'excused_count')
+        }),
+        ('QR Code', {
+            'fields': ('qr_uuid', 'qr_enabled', 'qr_expires_at'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(Attendance)
 class AttendanceAdmin(admin.ModelAdmin):
-    list_display = ['student', 'session', 'status']
-    list_filter = ['status']
-
+    list_display = [
+        'student', 'session', 'status', 
+        'checkin_method', 'checked_in_at', 'marked_by'
+    ]
+    list_filter = ['status', 'checkin_method', 'session__date']
+    search_fields = ['student__name', 'student__roll_no', 'session__subject__subject_name']
+    readonly_fields = ['checked_in_at']
+    
+    fieldsets = (
+        ('Basic Info', {
+            'fields': ('session', 'student', 'status', 'remarks')
+        }),
+        ('Audit Trail', {
+            'fields': ('checkin_method', 'checked_in_at', 'marked_by')
+        }),
+    )
 
 @admin.register(Result)
 class ResultAdmin(admin.ModelAdmin):

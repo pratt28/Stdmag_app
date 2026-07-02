@@ -1,10 +1,135 @@
-{% if teacher.headed_departments.exists %}
-<div class="card">
-    <h3>🏫 Head of Department</h3>
-    {% for dept in teacher.headed_departments.all %}
-    <a href="{% url 'department_detail' dept.id %}" class="btn btn-secondary">
-        {{ dept.name }}
-    </a>
-    {% endfor %}
-</div>
-{% endif %}
+{% extends 'base.html' %}
+
+{% block title %}{{ teacher.name }} - Teacher Profile{% endblock %}
+{% block page_title %}Teacher Profile{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<section class="card-shadow bg-surface-container rounded-xl p-md flex flex-col md:flex-row justify-between items-start md:items-center gap-md border border-outline-variant/30">
+    <div class="flex items-center gap-sm">
+        <a href="{% url 'teacher_list' %}" class="p-2 text-on-surface/60 hover:text-primary transition-all rounded-lg hover:bg-surface-container-high">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-label-md font-label-md rounded-full mb-xs">Faculty</span>
+            <h1 class="text-headline-lg font-headline-lg text-on-surface">Teacher Profile</h1>
+            <p class="text-body-md text-on-surface/60 mt-xs">{{ teacher.name }} • {{ teacher.department|default:"No Department" }}</p>
+        </div>
+    </div>
+    <div class="flex gap-sm">
+        <a href="{% url 'edit_teacher' teacher.id %}" class="flex items-center gap-xs px-5 py-3 bg-surface-container-high text-primary rounded-xl font-bold border border-primary/20 hover:bg-surface-container-highest transition-all active:scale-95">
+            <span class="material-symbols-outlined">edit</span>
+            Edit
+        </a>
+        <a href="{% url 'delete_teacher' teacher.id %}" class="flex items-center gap-xs px-5 py-3 bg-error/10 text-error rounded-xl font-bold border border-error/20 hover:bg-error hover:text-on-error transition-all active:scale-95"
+           onclick="return confirm('Are you sure you want to delete {{ teacher.name }}?')">
+            <span class="material-symbols-outlined">delete</span>
+            Delete
+        </a>
+    </div>
+</section>
+
+<!-- Profile Grid -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+    <!-- Left: Avatar & Quick Info -->
+    <div class="lg:col-span-1 card-shadow bg-surface-container rounded-xl p-md border border-outline-variant/30 flex flex-col items-center text-center">
+        <div class="w-32 h-32 rounded-3xl bg-primary-container text-on-primary flex items-center justify-center text-5xl font-bold shadow-lg">
+            {{ teacher.name|slice:":1"|upper }}
+        </div>
+
+        <h2 class="text-headline-lg font-headline-lg text-on-surface mt-lg">{{ teacher.name }}</h2>
+
+        {% if teacher.department %}
+        <span class="inline-flex items-center px-4 py-1.5 bg-primary/10 text-primary rounded-full text-label-md font-label-md mt-sm">
+            {{ teacher.department }}
+        </span>
+        {% endif %}
+
+        {% if teacher.qualification %}
+        <span class="inline-flex items-center px-4 py-1.5 bg-secondary-container/20 text-secondary rounded-full text-label-md font-label-md mt-xs">
+            {{ teacher.qualification }}
+        </span>
+        {% endif %}
+
+        <div class="mt-md w-full pt-md border-t border-outline-variant/30 space-y-3">
+            {% if teacher.experience %}
+            <div class="flex items-center justify-between p-sm bg-surface-container-low rounded-lg">
+                <div class="flex items-center gap-xs text-on-surface/60">
+                    <span class="material-symbols-outlined text-outline">trending_up</span>
+                    <span class="text-body-md">Experience</span>
+                </div>
+                <span class="text-body-md font-bold text-on-surface">{{ teacher.experience }} years</span>
+            </div>
+            {% endif %}
+
+            {% if teacher.joining_date %}
+            <div class="flex items-center justify-between p-sm bg-surface-container-low rounded-lg">
+                <div class="flex items-center gap-xs text-on-surface/60">
+                    <span class="material-symbols-outlined text-outline">calendar_today</span>
+                    <span class="text-body-md">Joined</span>
+                </div>
+                <span class="text-body-md font-bold text-on-surface">{{ teacher.joining_date }}</span>
+            </div>
+            {% endif %}
+
+            {% if teacher.teacher_id %}
+            <div class="flex items-center justify-between p-sm bg-surface-container-low rounded-lg">
+                <div class="flex items-center gap-xs text-on-surface/60">
+                    <span class="material-symbols-outlined text-outline">badge</span>
+                    <span class="text-body-md">Teacher ID</span>
+                </div>
+                <span class="text-body-md font-bold text-on-surface font-mono">{{ teacher.teacher_id }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right: Details -->
+    <div class="lg:col-span-2 space-y-gutter">
+        <!-- Contact Information -->
+        <div class="card-shadow bg-surface-container rounded-xl p-md border border-outline-variant/30">
+            <h3 class="text-headline-md font-headline-md text-on-surface mb-md flex items-center gap-sm">
+                <span class="material-symbols-outlined text-primary">contact_mail</span>
+                Contact Information
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                <div class="p-sm bg-surface-container-low rounded-xl border border-outline-variant/20">
+                    <div class="flex items-center gap-xs text-on-surface/50 mb-1">
+                        <span class="material-symbols-outlined text-sm">email</span>
+                        <span class="text-label-md font-label-md uppercase tracking-wider">Email</span>
+                    </div>
+                    <div class="text-body-md font-bold text-on-surface">{{ teacher.email|default:"Not Provided" }}</div>
+                </div>
+                <div class="p-sm bg-surface-container-low rounded-xl border border-outline-variant/20">
+                    <div class="flex items-center gap-xs text-on-surface/50 mb-1">
+                        <span class="material-symbols-outlined text-sm">phone</span>
+                        <span class="text-label-md font-label-md uppercase tracking-wider">Phone</span>
+                    </div>
+                    <div class="text-body-md font-bold text-on-surface">{{ teacher.phone|default:"Not Provided" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Head of Department -->
+        {% if teacher.headed_departments.exists %}
+        <div class="card-shadow bg-surface-container rounded-xl p-md border border-outline-variant/30">
+            <h3 class="text-headline-md font-headline-md text-on-surface mb-md flex items-center gap-sm">
+                <span class="material-symbols-outlined text-primary">account_balance</span>
+                Head of Department
+            </h3>
+            <div class="flex flex-wrap gap-sm">
+                {% for dept in teacher.headed_departments.all %}
+                <a href="{% url 'department_detail' dept.id %}" 
+                   class="flex items-center gap-xs px-4 py-2 bg-primary-container/30 text-primary rounded-xl hover:bg-primary-container hover:text-on-primary transition-all text-label-md font-label-md border border-primary/20">
+                    <span class="material-symbols-outlined text-sm">business</span>
+                    {{ dept.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

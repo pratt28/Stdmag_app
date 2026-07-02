@@ -78,6 +78,10 @@
                     <td>
                         <a href="{% url 'session_detail' session.id %}" class="btn btn-secondary btn-sm">View</a>
                         {% if not session.is_completed %}
+                        <!-- In session_list.html, inside the Actions <td> -->
+                        {% if not session.is_completed %}
+                         <a href="{% url 'generate_qr' session.id %}" class="btn btn-primary btn-sm" style="margin-left: 5px;">📱 QR</a>
+                        {% endif %}
                         <a href="{% url 'take_attendance' session.id %}" class="btn btn-success btn-sm" style="margin-left: 5px;">Take</a>
                         {% endif %}
                         <a href="{% url 'edit_attendance' session.id %}" class="btn btn-secondary btn-sm" style="margin-left: 5px;">Edit</a>

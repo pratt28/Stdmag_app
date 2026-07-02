@@ -1,123 +1,124 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ subject.subject_name }} - Subject Details{% endblock %}
+{% block page_title %}Subject Details{% endblock %}
+
 {% block content %}
 
-<div class="container-fluid">
-
-    <!-- Header -->
-    <div class="topbar mb-4">
-        <h4>
-            <i class="fas fa-book-open text-primary"></i>
-            Subject Details
-        </h4>
-        <p class="text-muted mb-0">
-            View complete information about this subject.
-        </p>
+<!-- Page Header -->
+<section class="card-shadow bg-surface-container rounded-xl p-md flex flex-col md:flex-row justify-between items-start md:items-center gap-md border border-outline-variant/30">
+    <div class="flex items-center gap-sm">
+        <a href="{% url 'subject_list' %}" class="p-2 text-on-surface/60 hover:text-primary transition-all rounded-lg hover:bg-surface-container-high">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-label-md font-label-md rounded-full mb-xs">Academics</span>
+            <h1 class="text-headline-lg font-headline-lg text-on-surface">Subject Details</h1>
+            <p class="text-body-md text-on-surface/60 mt-xs">View complete information about this subject.</p>
+        </div>
     </div>
+    <div class="flex gap-sm">
+        <a href="{% url 'subject_update' subject.id %}" class="flex items-center gap-xs px-5 py-3 bg-surface-container-high text-primary rounded-xl font-bold border border-primary/20 hover:bg-surface-container-highest transition-all active:scale-95">
+            <span class="material-symbols-outlined">edit</span>
+            Edit
+        </a>
+        <a href="{% url 'subject_delete' subject.id %}" class="flex items-center gap-xs px-5 py-3 bg-error/10 text-error rounded-xl font-bold border border-error/20 hover:bg-error hover:text-on-error transition-all active:scale-95"
+           onclick="return confirm('Are you sure you want to delete {{ subject.subject_name }}?')">
+            <span class="material-symbols-outlined">delete</span>
+            Delete
+        </a>
+    </div>
+</section>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-5">
+<!-- Subject Profile Card -->
+<section class="card-shadow bg-surface-container rounded-xl border border-outline-variant/30 overflow-hidden">
+    <div class="p-md lg:p-lg">
+        <div class="flex flex-col lg:flex-row gap-lg">
 
-            <div class="row">
-
-                <!-- Left Section -->
-                <div class="col-md-3 text-center">
-
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto"
-                         style="width:140px;height:140px;font-size:55px;">
-                        <i class="fas fa-book"></i>
-                    </div>
-
-                    <h3 class="mt-4 fw-bold">
-                        {{ subject.subject_name }}
-                    </h3>
-
-                    <span class="badge bg-success fs-6">
-                        {{ subject.subject_code }}
-                    </span>
-
+            <!-- Left: Subject Icon & Basic Info -->
+            <div class="lg:w-1/3 flex flex-col items-center text-center">
+                <div class="w-36 h-36 rounded-3xl bg-primary-container text-on-primary flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-6xl">menu_book</span>
                 </div>
 
-                <!-- Right Section -->
-                <div class="col-md-9">
+                <h2 class="text-headline-lg font-headline-lg text-on-surface mt-lg">{{ subject.subject_name }}</h2>
 
-                    <table class="table table-hover table-bordered align-middle">
+                <span class="inline-flex items-center px-4 py-1.5 bg-success/10 text-success rounded-full text-label-md font-label-md mt-sm">
+                    <span class="w-2 h-2 rounded-full bg-success mr-2"></span>
+                    {{ subject.subject_code }}
+                </span>
 
+                <div class="mt-md w-full pt-md border-t border-outline-variant/30">
+                    <div class="flex items-center justify-center gap-xs text-label-md font-label-md text-on-surface/70">
+                        <span class="material-symbols-outlined text-sm text-warning">star</span>
+                        <span>{{ subject.credits|default:"0" }} Credits</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Details Table -->
+            <div class="lg:w-2/3">
+                <div class="overflow-hidden rounded-xl border border-outline-variant/30">
+                    <table class="w-full">
                         <tbody>
-
-                            <tr>
-                                <th width="30%">Subject Name</th>
-                                <td>{{ subject.subject_name }}</td>
+                            <tr class="border-b border-outline-variant/20 hover:bg-surface-container-high/30 transition-colors">
+                                <th class="text-left px-md py-4 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider bg-surface-container-low w-1/3">Subject Name</th>
+                                <td class="px-md py-4 text-body-md font-bold text-on-surface">{{ subject.subject_name }}</td>
                             </tr>
-
-                            <tr>
-                                <th>Subject Code</th>
-                                <td>{{ subject.subject_code }}</td>
+                            <tr class="border-b border-outline-variant/20 hover:bg-surface-container-high/30 transition-colors">
+                                <th class="text-left px-md py-4 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider bg-surface-container-low">Subject Code</th>
+                                <td class="px-md py-4 text-body-md text-on-surface">{{ subject.subject_code }}</td>
                             </tr>
-
-                            <tr>
-                                <th>Department</th>
-                                <td>
+                            <tr class="border-b border-outline-variant/20 hover:bg-surface-container-high/30 transition-colors">
+                                <th class="text-left px-md py-4 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider bg-surface-container-low">Department</th>
+                                <td class="px-md py-4 text-body-md text-on-surface">
                                     {% if subject.department %}
-                                        {{ subject.department }}
+                                        <span class="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full text-label-md font-label-md">{{ subject.department }}</span>
                                     {% else %}
-                                        Not Assigned
+                                        <span class="text-outline italic">Not Assigned</span>
                                     {% endif %}
                                 </td>
                             </tr>
-
-                            <tr>
-                                <th>Year</th>
-                                <td>{{ subject.year }}</td>
+                            <tr class="border-b border-outline-variant/20 hover:bg-surface-container-high/30 transition-colors">
+                                <th class="text-left px-md py-4 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider bg-surface-container-low">Year</th>
+                                <td class="px-md py-4 text-body-md text-on-surface">{{ subject.year|default:"Not Set" }}</td>
                             </tr>
-
-                            <tr>
-                                <th>Semester</th>
-                                <td>{{ subject.semester }}</td>
+                            <tr class="border-b border-outline-variant/20 hover:bg-surface-container-high/30 transition-colors">
+                                <th class="text-left px-md py-4 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider bg-surface-container-low">Semester</th>
+                                <td class="px-md py-4 text-body-md text-on-surface">{{ subject.semester|default:"Not Set" }}</td>
                             </tr>
-
-                            <tr>
-                                <th>Credits</th>
-                                <td>
-                                    <span class="badge bg-info">
-                                        {{ subject.credits }} Credits
+                            <tr class="hover:bg-surface-container-high/30 transition-colors">
+                                <th class="text-left px-md py-4 text-label-md font-label-md text-on-surface/70 uppercase tracking-wider bg-surface-container-low">Credits</th>
+                                <td class="px-md py-4">
+                                    <span class="inline-flex items-center px-4 py-1.5 bg-warning/10 text-warning rounded-full text-label-md font-label-md">
+                                        <span class="material-symbols-outlined text-sm mr-1">star</span>
+                                        {{ subject.credits|default:"0" }} Credits
                                     </span>
                                 </td>
                             </tr>
-
                         </tbody>
-
                     </table>
-
-                    <div class="mt-4">
-
-                        <a href="{% url 'subject_update' subject.id %}"
-                           class="btn btn-warning">
-                            <i class="fas fa-edit"></i>
-                            Edit
-                        </a>
-
-                        <a href="{% url 'subject_delete' subject.id %}"
-                           class="btn btn-danger">
-                            <i class="fas fa-trash"></i>
-                            Delete
-                        </a>
-
-                        <a href="{% url 'subject_list' %}"
-                           class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i>
-                            Back
-                        </a>
-
-                    </div>
-
                 </div>
 
+                <!-- Action Buttons (Mobile/Tablet visible) -->
+                <div class="flex flex-wrap gap-sm mt-md lg:hidden">
+                    <a href="{% url 'subject_update' subject.id %}" class="flex items-center gap-xs px-5 py-2.5 bg-primary-container/30 text-primary rounded-lg hover:bg-primary-container hover:text-on-primary transition-all text-label-md font-label-md">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                        Edit
+                    </a>
+                    <a href="{% url 'subject_delete' subject.id %}" class="flex items-center gap-xs px-5 py-2.5 bg-error/10 text-error rounded-lg hover:bg-error hover:text-on-error transition-all text-label-md font-label-md"
+                       onclick="return confirm('Are you sure you want to delete {{ subject.subject_name }}?')">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                        Delete
+                    </a>
+                    <a href="{% url 'subject_list' %}" class="flex items-center gap-xs px-5 py-2.5 bg-surface-container-high text-on-surface rounded-lg hover:bg-surface-container-highest transition-all text-label-md font-label-md">
+                        <span class="material-symbols-outlined text-sm">arrow_back</span>
+                        Back
+                    </a>
+                </div>
             </div>
-
         </div>
     </div>
-
-</div>
+</section>
 
 {% endblock %}

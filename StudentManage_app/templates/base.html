@@ -1,182 +1,300 @@
-<!DOCTYPE html>
-<html lang="en">
-
+{% comment %} {% load static %} {% endcomment %}
+<html class="dark" lang="en">
 <head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>{% block title %}Student Management{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+    {% comment %} <link rel="stylesheet" href="{% static 'css/styles.css' %}"/> {% endcomment %}
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d4e3ff",
+                        "on-tertiary-fixed": "#191c1e",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#39485e",
+                        "surface-variant": "#e4e1ee",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-surface-variant": "#464555",
+                        "surface-container-highest": "#e4e1ee",
+                        "kpi-pink": "#fdf2f8",
+                        "on-primary": "#ffffff",
+                        "background": "#1b1b24",
+                        "on-error-container": "#93000a",
+                        "success": "#10b981",
+                        "tertiary-fixed": "#e1e3e5",
+                        "surface-dim": "#1b1b24",
+                        "kpi-orange": "#fff7ed",
+                        "surface-container": "#2a2932",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "sidebar-dark": "#16161e",
+                        "secondary-fixed-dim": "#b8c7e2",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#b6b8ba",
+                        "outline-variant": "#464555",
+                        "on-surface": "#f2effc",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "primary": "#c3c0ff",
+                        "outline": "#777587",
+                        "surface-tint": "#4d44e3",
+                        "kpi-indigo": "#eef2ff",
+                        "background-alt": "#16161e",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#302f39",
+                        "tertiary-container": "#46494b",
+                        "surface-container-low": "#23222a",
+                        "warning": "#f59e0b",
+                        "on-primary-container": "#b1afff",
+                        "on-secondary-fixed": "#0c1c30",
+                        "on-background": "#f2effc",
+                        "secondary-container": "#3e4759",
+                        "tertiary": "#c5c7c9",
+                        "primary-container": "#3525cd",
+                        "on-primary-fixed": "#0f0069",
+                        "tertiary-fixed-dim": "#c5c7c9",
+                        "error": "#ffb4ab",
+                        "kpi-emerald": "#f0fdf4",
+                        "surface-bright": "#2a2932",
+                        "surface": "#1b1b24",
+                        "inverse-primary": "#1e00a9",
+                        "surface-container-lowest": "#1b1b24",
+                        "secondary": "#b8c7e2",
+                        "inverse-surface": "#f2effc",
+                        "inverse-on-surface": "#302f39",
+                        "on-secondary-container": "#d4e3ff",
+                        "primary-fixed": "#e2dfff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "xs": "8px",
+                        "sidebar-width": "260px",
+                        "md": "24px",
+                        "xl": "48px",
+                        "gutter": "24px",
+                        "sm": "16px",
+                        "lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "caption": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "caption": ["10px", {"lineHeight": "12px", "fontWeight": "400"}],
+                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .card-shadow { box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2); }
+        .sidebar-width { width: 260px; }
+        .content-width { margin-left: 260px; width: calc(100% - 260px); }
+        .glass-header { backdrop-filter: blur(8px); background: rgba(27, 27, 36, 0.8); }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1b1b24; }
+        ::-webkit-scrollbar-thumb { background: #464555; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #777587; }
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Student Management</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-
-<link rel="stylesheet" href="/static/css/style.css?v=5">
-    <!-- Load Select2 CSS for autocomplete dropdowns -->
+    </style>
+    
+    {% block extra_css %}{% endblock %}
     {{ form.media.css }}
 </head>
 
-<body>
-    <!-- Admin Navbar -->
-<nav style="
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-">
-    <div style="font-size: 20px; font-weight: 700;">
-        🏛️ University Admin
-    </div>
-    
-    <div style="display: flex; gap: 25px; align-items: center;">
-        <a href="{% url 'dashboard' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Dashboard</a>
-        <a href="{% url 'student_list' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Students</a>
-        <a href="{% url 'teacher_list' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Teachers</a>
-        <a href="{% url 'department_list' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Departments</a>
-        <a href="{% url 'subject_list' %}" style="color: rgba(255,255,255,0.85); text-decoration: none;">Subjects</a>
-    </div>
-    
-    <!-- Logout Button -->
-    {% if user.is_authenticated %}
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <span style="background: rgba(255,255,255,0.2); padding: 8px 18px; border-radius: 25px; font-size: 13px;">
-            👤 {{ user.username }}
-        </span>
-        <form method="post" action="{% url 'login' %}" style="display: inline; margin: 0;">
-            {% csrf_token %}
-            <button type="submit" style="
-                background: rgba(239, 68, 68, 0.85);
-                color: white;
-                border: none;
-                padding: 9px 22px;
-                border-radius: 25px;
-                font-size: 13px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s;
-            " onmouseover="this.style.background='rgba(239, 68, 68, 1)'" 
-            onmouseout="this.style.background='rgba(239, 68, 68, 0.85)'">
-                🚪 Logout
-            </button>
-        </form>
-    </div>
-    {% endif %}
-</nav>
+<body class="bg-background text-on-surface">
 
-<div class="wrapper">
+    <!-- SideNavBar -->
+    <aside class="fixed left-0 top-0 h-screen w-sidebar-width bg-sidebar-dark flex flex-col py-md z-50 border-r border-outline-variant/30 additional-class">
+        <div class="px-md mb-lg" >
+            <div class="text-headline-lg font-headline-lg font-black text-primary">
+                SMS
+            </div>
+            <div class="text-label-md font-label-md text-on-surface/50 uppercase tracking-widest mt-1">
+                Management System
+            </div>
+            
+        </div>
+        <hr class="border-outline-variant/30 mb-lg">
+        <nav class="flex-1 space-y-1 px-sm">
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'dashboard' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'dashboard' %}">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="text-label-md font-label-md">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'student_list' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'student_list' %}">
+                <span class="material-symbols-outlined">group</span>
+                <span class="text-label-md font-label-md">Students</span>
+            </a>
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'department_list' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'department_list' %}">
+                <span class="material-symbols-outlined">business</span>
+                <span class="text-label-md font-label-md">Departments</span>
+            </a>
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'subject_list' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'subject_list' %}">
+                <span class="material-symbols-outlined">book</span>
+                <span class="text-label-md font-label-md">Subjects</span>
+            </a>
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'teacher_list' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'teacher_list' %}">
+                <span class="material-symbols-outlined">school</span>
+                <span class="text-label-md font-label-md">Teachers</span>
+            </a>
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'attendance_dashboard' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'attendance_dashboard' %}">
+                <span class="material-symbols-outlined">event_available</span>
+                <span class="text-label-md font-label-md">Attendance</span>
+            </a>
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'result_list' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'result_list' %}">
+                <span class="material-symbols-outlined">assignment_turned_in</span>
+                <span class="text-label-md font-label-md">Results</span>
+            </a>
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'fee_list' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'fee_list' %}">
+                <span class="material-symbols-outlined">payments</span>
+                <span class="text-label-md font-label-md">Fees</span>
+            </a>
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'user_list' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'user_list' %}">
+                <span class="material-symbols-outlined">person_search</span>
+                <span class="text-label-md font-label-md">Users</span>
+            </a>
+            <a class="flex items-center gap-sm px-sm py-xs rounded-xl text-on-surface/70 hover:bg-surface-container hover:text-primary transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-primary-container text-on-primary font-bold{% endif %}" href="{% url 'profile' %}">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span class="text-label-md font-label-md">Profile</span>
+            </a>
+        </nav>
+    </aside>
 
-    <!-- Sidebar -->
+    <!-- Main Content Wrapper -->
+    <main class="content-width min-h-screen flex flex-col">
+        
+        <!-- TopNavBar -->
+        <header class="fixed top-0 right-0 left-sidebar-width z-40 glass-header border-b border-outline-variant/30 flex justify-between items-center h-16 px-md w-auto">
+            <div class="flex items-center gap-lg">
+                <span class="text-headline-md font-headline-md text-on-surface hidden md:block">
+                    {% block page_title %}Student Management Dashboard{% endblock %}
+                </span>
+                <div class="hidden lg:flex gap-md">
+                    <a class="text-primary font-bold border-b-2 border-primary pb-1 transition-all" href="{% url 'dashboard' %}">Dashboard</a>
+                    <a class="text-on-surface/60 hover:text-primary transition-all" href="{% url 'student_list' %}">Students</a>
+                    <a class="text-on-surface/60 hover:text-primary transition-all" href="{% url 'teacher_list' %}">Teachers</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-md">
+                
+                <div class="flex items-center gap-sm pl-md border-l border-outline-variant/30">
+                    <div class="flex flex-col items-end hidden sm:flex">
+                        <span class="text-label-md font-label-md text-on-surface">{{ user.username|default:"Admin" }}</span>
+                        <span class="text-[10px] text-outline">Administrator</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold text-lg border border-outline-variant/30">
+                        {{ user.username|default:"A"|slice:":1"|upper }}
+                    </div>
+                    {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'logout' %}" class="inline m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="ml-2 px-4 py-2 bg-error/80 hover:bg-error text-on-error rounded-xl text-label-md font-label-md transition-all active:scale-95">
+                            Logout
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
 
-    <aside class="sidebar">
-
-        <div class="logo">
-
-            <h3>SMS</h3>
-
+        <!-- Main Content Area -->
+        <div class="pt-24 px-md pb-xl max-w-[1440px] mx-auto w-full space-y-gutter">
+            {% block content %}{% endblock %}
         </div>
 
-        <ul>
-
-<li>
-<a href="{% url 'dashboard' %}">
-<i class="fas fa-chart-line"></i>
-Dashboard
-</a>
-</li>
-
-<li>
-<a href="{% url 'student_list' %}">
-<i class="fas fa-user-graduate"></i>
-Students
-</a>
-</li>
-
-<li>
-<a href="{% url 'department_list' %}">
-<i class="fas fa-building"></i>
-Departments
-</a>
-</li>
-
-<li>
-<a href="{% url 'subject_list' %}">
-<i class="fas fa-book"></i>
-Subjects
-</a>
-</li> 
-
-<li>
-<a href="{% url 'teacher_list' %}">
-<i class="fas fa-chalkboard-teacher"></i>
-Teachers
-</a>
-</li>
-<li>
-    <a href="{% url 'attendance_dashboard' %}">
-        <i class="fas fa-calendar-check"></i>
-        Attendance
-    </a>
-</li>
-
-
-<li>
-    <a href="{% url 'result_list' %}">
-        <i class="fas fa-file-alt"></i>
-        Results
-    </a>
-</li>
-
-<li>
-<a href="{% url 'fee_list' %}">
-<i class="fas fa-money-bill-wave"></i>
-Fees
-</a>
-
-</li>
-
-<li>
-<a href="{% url 'user_list' %}">
-<i class="fas fa-users"></i>
-Users
-</a>
-</li>
-
-<li>
-<a href="{% url 'profile' %}">
-<i class="fas fa-user-circle"></i>
-Profile
-</a>
-</li>
-
-</ul>
-</aside>
-    <!-- Main Content -->
-
-    <main class="content">
-
-        <div class="topbar">
-
-            <h4>Student Management Dashboard</h4>
-
-        </div>
-
-        {% block content %}
-
-        {% endblock %}
-
+        <!-- Footer -->
+        <footer class="mt-auto px-md py-sm flex justify-between items-center text-label-md text-outline border-t border-outline-variant/30">
+            <div>© {% now "Y" %} Academic Core SMS • All rights reserved.</div>
+            <div class="flex gap-md">
+                <a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+                <a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+                <a class="hover:text-primary transition-colors" href="#">Help Center</a>
+            </div>
+        </footer>
     </main>
-
-</div>
 
     <!-- jQuery required for Select2 -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <!-- Select2 JS for autocomplete dropdowns -->
     {{ form.media.js }}
-</body>
+    
+    <!-- Micro-interaction Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Ripple effect for cards
+            const cards = document.querySelectorAll('.card-shadow');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-2px)';
+                    card.style.transition = 'transform 0.2s ease-out';
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0)';
+                });
+            });
 
+            // Smooth reveal animation
+            const sections = document.querySelectorAll('section');
+            sections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(10px)';
+                section.style.transition = `all 0.4s ease-out ${index * 0.1}s`;
+                setTimeout(() => {
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, 100);
+            });
+        });
+         {% comment %} <!-- BACK BUTTON PREVENTION - MUST BE FIRST --> {% endcomment %}
+   
+        (function() {
+            // Disable bfcache completely
+            if ('onpageshow' in window) {
+                window.onpageshow = function(event) {
+                    if (event.persisted) {
+                        // Page was loaded from bfcache - force reload from server
+                        window.location.reload();
+                    }
+                };
+            }
+            
+
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
 </html>

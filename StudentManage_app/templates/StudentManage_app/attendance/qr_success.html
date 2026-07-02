@@ -1,0 +1,27 @@
+{% extends 'StudentManage_app/attendance/base.html' %}
+{% block title %}Attendance Marked{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 60px auto; text-align: center;">
+    <div class="card" style="padding: 50px 30px;">
+        <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
+        <h2 style="color: #059669; margin-bottom: 10px;">Attendance Marked!</h2>
+        <p style="color: #64748b; margin-bottom: 25px;">
+            <strong>{{ attendance.student.name }}</strong><br>
+            {{ attendance.session.subject.subject_name }}<br>
+            <small>{{ attendance.session.date|date:"M d, Y" }}</small>
+        </p>
+        
+        <div style="background: #d1fae5; padding: 15px; border-radius: 12px; margin-bottom: 25px;">
+            <span style="color: #065f46; font-weight: 600; font-size: 18px;">
+                ✅ Present
+            </span>
+            <p style="color: #059669; font-size: 12px; margin-top: 5px;">
+                Checked in at {{ attendance.checked_in_at|time:"H:i" }}
+            </p>
+        </div>
+        
+        <p style="color: #94a3b8; font-size: 13px;">You can close this page now.</p>
+    </div>
+</div>
+{% endblock %}

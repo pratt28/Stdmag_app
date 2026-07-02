@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'StudentManage_app.middleware.DisableCacheMiddleware',#for disabling cache for all pages (login, dashboard, everything)
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -48,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'StudentManage_app.middleware.TeacherAuthMiddleware',
+    
 ]
 
 # Session settings — CRITICAL for fixing the session bug

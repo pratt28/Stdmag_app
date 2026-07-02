@@ -1,34 +1,80 @@
 {% extends 'base.html' %}
 
+{% block title %}Edit {{ teacher.name }} - Teacher{% endblock %}
+{% block page_title %}Edit Teacher{% endblock %}
+
 {% block content %}
 
-<div class="card p-4">
+<!-- Page Header -->
+<section class="card-shadow bg-surface-container rounded-xl p-md flex flex-col md:flex-row justify-between items-start md:items-center gap-md border border-outline-variant/30">
+    <div class="flex items-center gap-sm">
+        <a href="{% url 'teacher_list' %}" class="p-2 text-on-surface/60 hover:text-primary transition-all rounded-lg hover:bg-surface-container-high">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <span class="inline-block px-3 py-1 bg-warning/10 text-warning text-label-md font-label-md rounded-full mb-xs">Editing</span>
+            <h1 class="text-headline-lg font-headline-lg text-on-surface">Edit Teacher</h1>
+            <p class="text-body-md text-on-surface/60 mt-xs">Update information for {{ teacher.name }}</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-sm">
+        <div class="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-black text-lg">
+            {{ teacher.name|slice:":1"|upper }}
+        </div>
+        <span class="text-label-md font-label-md text-on-surface">{{ teacher.name }}</span>
+    </div>
+</section>
 
-    <h2>Edit Teacher</h2>
-
-    <form method="POST">
+<!-- Form Card -->
+<section class="card-shadow bg-surface-container rounded-xl p-md lg:p-lg border border-outline-variant/30 max-w-2xl mx-auto">
+    <form method="POST" class="space-y-gutter">
         {% csrf_token %}
 
-        <div class="mb-3">
-            <label>Name</label>
-            <input type="text" name="name" class="form-control" value="{{ teacher.name }}">
+        <!-- Name Field -->
+        <div class="field-group">
+            <label for="id_name" class="block text-label-md font-label-md text-on-surface/70 uppercase tracking-wider mb-xs">
+                Name
+            </label>
+            <input type="text" name="name" id="id_name" 
+                value="{{ teacher.name }}"
+                class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-body-md text-on-surface placeholder-on-surface/40 focus:ring-2 focus:ring-primary-container focus:border-transparent transition-all"
+                placeholder="Enter teacher name" required/>
         </div>
 
-        <div class="mb-3">
-            <label>Email</label>
-            <input type="email" name="email" class="form-control" value="{{ teacher.email }}">
+        <!-- Email Field -->
+        <div class="field-group">
+            <label for="id_email" class="block text-label-md font-label-md text-on-surface/70 uppercase tracking-wider mb-xs">
+                Email
+            </label>
+            <input type="email" name="email" id="id_email" 
+                value="{{ teacher.email|default:'' }}"
+                class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-body-md text-on-surface placeholder-on-surface/40 focus:ring-2 focus:ring-primary-container focus:border-transparent transition-all"
+                placeholder="Enter email address"/>
         </div>
 
-        <div class="mb-3">
-            <label>Phone</label>
-            <input type="text" name="phone" class="form-control" value="{{ teacher.phone }}">
+        <!-- Phone Field -->
+        <div class="field-group">
+            <label for="id_phone" class="block text-label-md font-label-md text-on-surface/70 uppercase tracking-wider mb-xs">
+                Phone
+            </label>
+            <input type="text" name="phone" id="id_phone" 
+                value="{{ teacher.phone|default:'' }}"
+                class="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-xl text-body-md text-on-surface placeholder-on-surface/40 focus:ring-2 focus:ring-primary-container focus:border-transparent transition-all"
+                placeholder="Enter phone number"/>
         </div>
 
-        <button type="submit" class="btn btn-success">Update</button>
-        <a href="{% url 'teacher_list' %}" class="btn btn-secondary">Cancel</a>
-
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-sm pt-md border-t border-outline-variant/30">
+            <button type="submit" class="flex items-center justify-center gap-xs px-8 py-3 bg-primary-container text-on-primary rounded-xl font-bold shadow-md hover:opacity-90 transition-all active:scale-95">
+                <span class="material-symbols-outlined">save</span>
+                Update Teacher
+            </button>
+            <a href="{% url 'teacher_list' %}" class="flex items-center justify-center gap-xs px-8 py-3 bg-surface-container-high text-on-surface rounded-xl font-bold border border-outline-variant/30 hover:bg-surface-container-highest transition-all active:scale-95">
+                <span class="material-symbols-outlined">close</span>
+                Cancel
+            </a>
+        </div>
     </form>
-
-</div>
+</section>
 
 {% endblock %}

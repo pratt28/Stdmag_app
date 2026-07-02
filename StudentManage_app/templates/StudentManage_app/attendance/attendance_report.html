@@ -1,5 +1,4 @@
 {% extends 'StudentManage_app/attendance/base.html' %}
-
 {% block title %}Attendance Report - Attendance System{% endblock %}
 
 {% block content %}
@@ -11,31 +10,12 @@
 <!-- Filters -->
 <div class="card" style="padding: 20px;">
     <form method="get" class="filters">
-        <select name="subject" class="form-control">
-            <option value="">All Subjects</option>
-            {% for subject in subjects %}
-            <option value="{{ subject.id }}" {% if request.GET.subject == subject.id|stringformat:"s" %}selected{% endif %}>
-                {{ subject.subject_name }}
-            </option>
-            {% endfor %}
-        </select>
-        <select name="student" class="form-control">
-            <option value="">All Students</option>
-            {% for student in students %}
-            <option value="{{ student.id }}" {% if request.GET.student == student.id|stringformat:"s" %}selected{% endif %}>
-                {{ student.name }} ({{ student.roll_no }})
-            </option>
-            {% endfor %}
-        </select>
-        <select name="status" class="form-control">
-            <option value="">All Status</option>
-            <option value="Present" {% if request.GET.status == 'Present' %}selected{% endif %}>Present</option>
-            <option value="Absent" {% if request.GET.status == 'Absent' %}selected{% endif %}>Absent</option>
-            <option value="Late" {% if request.GET.status == 'Late' %}selected{% endif %}>Late</option>
-            <option value="Excused" {% if request.GET.status == 'Excused' %}selected{% endif %}>Excused</option>
-        </select>
-        <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}" placeholder="From">
-        <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}" placeholder="To">
+        {{ form.subject }}
+        {{ form.student }}
+        {{ form.status }}
+        {{ form.checkin_method }}
+        {{ form.date_from }}
+        {{ form.date_to }}
         <button type="submit" class="btn btn-primary btn-sm">🔍 Filter</button>
         <a href="{% url 'attendance_report' %}" class="btn btn-secondary btn-sm">Clear</a>
     </form>
@@ -45,6 +25,9 @@
 <div class="card">
     <div class="card-header">
         <span class="card-title">📋 Records ({{ total_records }} total)</span>
+        <span style="color: #64748b; font-size: 13px;">
+            QR Adoption: <strong style="color: #059669;">{{ qr_adoption }}%</strong>
+        </span>
     </div>
     
     <div class="table-container">
@@ -56,6 +39,7 @@
                     <th>Subject</th>
                     <th>Period</th>
                     <th>Status</th>
+                    <th>Method</th>
                     <th>Remarks</th>
                 </tr>
             </thead>
@@ -78,11 +62,18 @@
                             {{ record.status }}
                         </span>
                     </td>
+                    <td>
+                        {% if record.checkin_method == 'qr_scan' %}
+                            <span style="color: #059669;">📱 QR</span>
+                        {% else %}
+                            <span style="color: #64748b;">👨‍🏫 Manual</span>
+                        {% endif %}
+                    </td>
                     <td style="color: #64748b;">{{ record.remarks|default:"—" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6">
+                    <td colspan="7">
                         <div class="empty-state">
                             <div class="empty-state-icon">🔍</div>
                             <p>No records found matching your filters</p>

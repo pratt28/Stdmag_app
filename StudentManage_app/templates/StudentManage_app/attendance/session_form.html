@@ -12,36 +12,82 @@
     <form method="post">
         {% csrf_token %}
         
+        {% if form.non_field_errors %}
+        <div class="alert alert-error" style="margin-bottom: 20px;">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+        
+        <!-- Subject with Year/Semester Filter -->
         <div class="form-group">
-            <label for="subject">📚 Subject *</label>
-            <select name="subject" id="subject" class="form-control" required>
-                <option value="">Select Subject</option>
-                {% for subject in subjects %}
-                <option value="{{ subject.id }}">{{ subject.subject_name }} ({{ subject.department.name }} - {{ subject.year }})</option>
+            <label>📚 Subject *</label>
+            
+            <!-- Quick Filter -->
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <select id="year-filter" class="form-control" style="flex: 1;">
+                    <option value="">All Years</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                </select>
+                <select id="semester-filter" class="form-control" style="flex: 1;">
+                    <option value="">All Semesters</option>
+                    <option value="1st Semester">Semester 1</option>
+                    <option value="2nd Semester">Semester 2</option>
+                    <option value="3rd Semester">Semester 3</option>
+                    <option value="4th Semester">Semester 4</option>
+                    <option value="5th Semester">Semester 5</option>
+                    <option value="6th Semester">Semester 6</option>
+                    <option value="7th Semester">Semester 7</option>
+                    <option value="8th Semester">Semester 8</option>
+                </select>
+            </div>
+            
+            <!-- Grouped Subject Select -->
+            <select name="subject" id="id_subject" class="form-control" required>
+                <option value="">---------</option>
+                {% for dept_name, year_groups in subjects_grouped.items %}
+                    {% for year_sem, subjects in year_groups.items %}
+                        <optgroup label="📁 {{ dept_name }} | {{ year_sem }}">
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}">
+                                    {{ subject.subject_name }}
+                                </option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
                 {% endfor %}
             </select>
+            {% if form.subject.errors %}
+            <div class="error-message">{{ form.subject.errors }}</div>
+            {% endif %}
         </div>
         
         <div class="form-group">
-            <label for="date">📅 Date *</label>
-            <input type="date" name="date" id="date" class="form-control" required 
-                   value="{% now "Y-m-d" %}">
+            <label for="{{ form.date.id_for_label }}">📅 Date *</label>
+            {{ form.date }}
+            {% if form.date.errors %}
+            <div class="error-message">{{ form.date.errors }}</div>
+            {% endif %}
         </div>
         
         <div class="form-group">
-            <label for="period">🕐 Period *</label>
-            <input type="text" name="period" id="period" class="form-control" required
-                   placeholder="e.g., Period 1, Morning Session, etc.">
+            <label for="{{ form.period.id_for_label }}">🕐 Period *</label>
+            {{ form.period }}
+            {% if form.period.errors %}
+            <div class="error-message">{{ form.period.errors }}</div>
+            {% endif %}
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="form-group">
-                <label for="start_time">⏰ Start Time</label>
-                <input type="time" name="start_time" id="start_time" class="form-control" value="09:00">
+                <label for="{{ form.start_time.id_for_label }}">⏰ Start Time</label>
+                {{ form.start_time }}
             </div>
             <div class="form-group">
-                <label for="end_time">⏰ End Time</label>
-                <input type="time" name="end_time" id="end_time" class="form-control" value="10:00">
+                <label for="{{ form.end_time.id_for_label }}">⏰ End Time</label>
+                {{ form.end_time }}
             </div>
         </div>
         
@@ -51,4 +97,56 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today
+    var dateField = document.getElementById('{{ form.date.id_for_label }}');
+    if (dateField) {
+        dateField.value = new Date().toISOString().split('T')[0];
+    }
+
+    var select = document.getElementById('id_subject');
+    var yearFilter = document.getElementById('year-filter');
+    var semFilter = document.getElementById('semester-filter');
+    
+    if (!select || !yearFilter || !semFilter) return;
+
+    // Store original HTML
+    var originalHTML = select.innerHTML;
+
+    function filterSubjects() {
+        var yearVal = yearFilter.value;   // e.g., "1st Year" or ""
+        var semVal = semFilter.value;     // e.g., "1st Semester" or ""
+        
+        // Restore original HTML
+        select.innerHTML = originalHTML;
+        
+        // Get all optgroups and filter
+        var optgroups = select.querySelectorAll('optgroup');
+        
+        optgroups.forEach(function(og) {
+            var label = og.label;
+            var show = true;
+            
+            // Check year filter
+            if (yearVal && label.indexOf(yearVal) === -1) {
+                show = false;
+            }
+            
+            // Check semester filter  
+            if (semVal && label.indexOf(semVal) === -1) {
+                show = false;
+            }
+            
+            if (!show) {
+                og.remove();
+            }
+        });
+    }
+
+    yearFilter.addEventListener('change', filterSubjects);
+    semFilter.addEventListener('change', filterSubjects);
+});
+</script>
 {% endblock %}

@@ -40,7 +40,29 @@
         <div class="number purple">{{ stats.percentage }}%</div>
     </div>
 </div>
-
+<!-- QR Check-in Stats -->
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <span class="card-title">📱 Check-in Methods</span>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px;">
+        <div style="text-align: center; padding: 20px; background: #dbeafe; border-radius: 12px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">👨‍🏫</div>
+            <div style="font-size: 24px; font-weight: 800; color: #2563eb;">{{ stats.manual_checkins }}</div>
+            <div style="color: #64748b; font-size: 13px;">Manual (Teacher)</div>
+        </div>
+        <div style="text-align: center; padding: 20px; background: #d1fae5; border-radius: 12px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">📱</div>
+            <div style="font-size: 24px; font-weight: 800; color: #059669;">{{ stats.qr_checkins }}</div>
+            <div style="color: #64748b; font-size: 13px;">QR Code (Self)</div>
+        </div>
+    </div>
+    {% if not session.is_completed %}
+    <div style="padding: 0 20px 20px;">
+        <a href="{% url 'generate_qr' session.id %}" class="btn btn-primary">📱 Generate QR Code</a>
+    </div>
+    {% endif %}
+</div>
 <!-- Attendance Progress -->
 <div class="card">
     <div class="card-header">

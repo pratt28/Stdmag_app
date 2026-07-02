@@ -3,6 +3,9 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import hashlib
+import uuid #(for generating unique identifires for teachers and students)
+from django.db.models import Count, Q, F, Case, When, FloatField #(for calculating attendance percentahges)
+
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
@@ -61,6 +64,8 @@ class Subject(models.Model):
         dept_name = self.department.name if self.department else "No Dept"
         return f"{self.subject_name} ({dept_name})"
 
+
+#Student Model with fields for personal information
 class Student(models.Model):
     YEAR_CHOICES = (
         ('1st Year', '1st Year'),
@@ -92,6 +97,7 @@ class Student(models.Model):
         return self.name
 
 
+#teacher model with independent login (NOT linked to Django admin)
 class Teacher(models.Model):
     """Teacher model with independent login (NOT linked to Django admin)"""
     teacher_id = models.CharField(max_length=20, unique=True,null=True,blank=True)
@@ -122,44 +128,115 @@ class Teacher(models.Model):
     def __str__(self):
         return self.name
 
+
 class AttendanceSession(models.Model):
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='sessions')
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='sessions_taken')
+    SESSION_STATUS = [
+        ('scheduled', 'Scheduled'),
+        ('ongoing', 'Ongoing'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    subject = models.ForeignKey('Subject', on_delete=models.CASCADE, related_name='sessions')
+    teacher = models.ForeignKey('Teacher', on_delete=models.CASCADE, related_name='sessions_taken')
     date = models.DateField(default=timezone.now)
     period = models.CharField(max_length=50)
     start_time = models.TimeField()
     end_time = models.TimeField()
+    
+    # Session status tracking
+    status = models.CharField(max_length=20, choices=SESSION_STATUS, default='scheduled')
     is_completed = models.BooleanField(default=False)
+    
+    # Counts — FIXED: all four status types now tracked
     total_students = models.IntegerField(default=0)
     present_count = models.IntegerField(default=0)
     absent_count = models.IntegerField(default=0)
-    created_at = models.DateTimeField(null=True,blank=True)
-
+    late_count = models.IntegerField(default=0)
+    excused_count = models.IntegerField(default=0)
+    
+    # QR Code for self-check-in
+    # default=uuid.uuid4,
+    qr_uuid = models.UUIDField( blank=True, null=True, unique=True, editable=False)
+    qr_enabled = models.BooleanField(default=False)
+    qr_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    # Timestamps — FIXED: auto_now_add instead of null
+    created_at = models.DateTimeField(auto_now_add=True,null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
     class Meta:
         unique_together = ['subject', 'teacher', 'date', 'period']
-
+        ordering = ['-date', '-start_time']
+    
     def __str__(self):
         return f"{self.subject} - {self.date} ({self.period})"
+    
+    @property
+    def attendance_percentage(self):
+        if self.total_students == 0:
+            return 0
+        return round((self.present_count / self.total_students) * 100, 1)
+    
+    @property
+    def is_qr_valid(self):
+        if not self.qr_enabled or not self.qr_expires_at:
+            return False
+        return timezone.now() < self.qr_expires_at
+    
+    def regenerate_qr(self, minutes_valid=15):
+        """Generate new QR code, valid for specified minutes"""
+        self.qr_uuid = uuid.uuid4()
+        self.qr_enabled = True
+        self.qr_expires_at = timezone.now() + timezone.timedelta(minutes=minutes_valid)
+        self.save(update_fields=['qr_uuid', 'qr_enabled', 'qr_expires_at'])
+    
+    def disable_qr(self):
+        self.qr_enabled = False
+        self.qr_expires_at = None
+        self.save(update_fields=['qr_enabled', 'qr_expires_at'])
 
 
 class Attendance(models.Model):
+    CHECKIN_METHODS = [
+        ('manual', 'Manual (Teacher)'),
+        ('qr_scan', 'QR Code Self Check-in'),
+        ('bulk', 'Bulk Import'),
+    ]
+    
     STATUS_CHOICES = [
         ('Present', 'Present'),
         ('Absent', 'Absent'),
         ('Late', 'Late'),
         ('Excused', 'Excused'),
     ]
-    session = models.ForeignKey(AttendanceSession, on_delete=models.CASCADE, related_name='records',null=True,blank=True)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='attendances')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Present')
+    
+    session = models.ForeignKey(AttendanceSession, on_delete=models.CASCADE, related_name='records', null=True, blank=True)
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='attendances')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Absent')
     remarks = models.TextField(blank=True, null=True)
+    
+    # How the attendance was marked
+    checkin_method = models.CharField(max_length=20, choices=CHECKIN_METHODS, default='manual')
+    checked_in_at = models.DateTimeField(null=True, blank=True)
+    
+    # who will take the attendance
+    marked_by = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True, blank=True, related_name='attendance_marked')
     
     class Meta:
         unique_together = ['session', 'student']
-
+        ordering = ['-session__date', 'student__roll_no']
+    
     def __str__(self):
         return f"{self.student.name} - {self.status}"
-
+    
+    def mark_present(self, method='manual', teacher=None):
+        self.status = 'Present'
+        self.checkin_method = method
+        self.checked_in_at = timezone.now()
+        if teacher:
+            self.marked_by = teacher
+        self.save()
 
 class Result(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='results')

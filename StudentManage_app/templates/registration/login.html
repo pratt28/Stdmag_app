@@ -138,5 +138,11 @@
             <a href="{% url 'teacher_login' %}">👨‍🏫 Teacher Login →</a>
         </div>
     </div>
+<script>
+    // Clear any cached pages when login page loads
+    if (window.performance && window.performance.navigation.type === 2) {
+        window.location.reload(true);
+    }
+</script>
 </body>
 </html>

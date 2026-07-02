@@ -1,96 +1,82 @@
 {% extends 'base.html' %}
+
+{% block title %}Subjects by Department - Student Management{% endblock %}
+{% block page_title %}Subjects by Department{% endblock %}
+
 {% block content %}
 
-<div class="container-fluid">
-
-    <div class="subject-page-toolbar d-flex justify-content-between align-items-center mb-4">
-
-        <div>
-            <h1 class="page-title">
-                Subjects by Department
-            </h1>
-
-            <p class="page-subtitle">
-                Select a department to view its subjects by year and semester.
-            </p>
-        </div>
-
-        <a href="{% url 'subject_create' %}"
-           class="btn btn-add text-white">
-
-            <i class="fas fa-plus"></i>
-            Add Subject
-
-        </a>
-
+<!-- Page Header -->
+<section class="card-shadow bg-surface-container rounded-xl p-md flex flex-col md:flex-row justify-between items-start md:items-center gap-md border border-outline-variant/30">
+    <div>
+        <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-label-md font-label-md rounded-full mb-xs">Academics</span>
+        <h1 class="text-headline-lg font-headline-lg text-on-surface">Subjects by Department</h1>
+        <p class="text-body-md text-on-surface/60 mt-xs">Select a department to view its subjects by year and semester.</p>
     </div>
+    <a href="{% url 'subject_create' %}" class="flex items-center gap-xs px-6 py-3 bg-primary-container text-on-primary rounded-xl font-bold shadow-md hover:opacity-90 transition-all active:scale-95">
+        <span class="material-symbols-outlined">add</span>
+        Add Subject
+    </a>
+</section>
 
-    <div class="row g-4">
+<!-- Department Cards Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+    {% for department in departments %}
+    <a href="{% url 'subject_department_list' department.id %}" 
+       class="card-shadow bg-surface-container rounded-xl p-md border border-outline-variant/30 hover:border-primary/50 transition-all group flex flex-col h-full">
 
-        {% for department in departments %}
-
-        <div class="col-xl-4 col-lg-4 col-md-6">
-
-            <a href="{% url 'subject_department_list' department.id %}"
-               class="card department-subject-card h-100">
-
-                <div class="department-card-top">
-                    <div class="department-subject-icon">
-                        <i class="fas fa-building-columns"></i>
-                    </div>
-
-                    <span class="department-status">
-                        Active
-                    </span>
-                </div>
-
-                <div>
-                    <h4>
-                        {{ department.name }}
-                    </h4>
-
-                    <p class="department-hod">
-                        HOD: {{ department.hod }}
-                    </p>
-                </div>
-
-                <div class="department-subject-meta">
-
-                    <span>
-                        <i class="fas fa-book-open"></i>
-                        {{ department.subject_count }} Subjects
-                    </span>
-
-                    <span>
-                        <i class="fas fa-star"></i>
-                        {{ department.total_credits|default:0 }} Credits
-                    </span>
-
-                </div>
-
-                <div class="department-subject-action">
-                    <span>View Subjects</span>
-                    <i class="fas fa-arrow-right"></i>
-                </div>
-
-            </a>
-
-        </div>
-
-        {% empty %}
-
-        <div class="col-12">
-            <div class="empty-state">
-                <i class="fas fa-building"></i>
-                <h4>No departments found</h4>
-                <p>Add a department first, then subjects can be grouped here.</p>
+        <!-- Card Top -->
+        <div class="flex items-start justify-between mb-md">
+            <div class="w-14 h-14 rounded-2xl bg-primary/20 text-primary flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary transition-all">
+                <span class="material-symbols-outlined text-3xl">account_balance</span>
             </div>
+            <span class="inline-flex items-center px-3 py-1 bg-success/10 text-success rounded-full text-label-md font-label-md">
+                <span class="w-1.5 h-1.5 rounded-full bg-success mr-1.5"></span>
+                Active
+            </span>
         </div>
 
-        {% endfor %}
+        <!-- Department Name -->
+        <h3 class="text-headline-md font-headline-md text-on-surface group-hover:text-primary transition-colors">{{ department.name }}</h3>
 
+        <!-- HOD -->
+        <p class="text-body-md text-on-surface/60 mt-xs flex items-center gap-xs">
+            <span class="material-symbols-outlined text-sm text-outline">person_apron</span>
+            HOD: {{ department.hod|default:"Not Assigned" }}
+        </p>
+
+        <!-- Meta Stats -->
+        <div class="flex items-center gap-md mt-md pt-md border-t border-outline-variant/30">
+            <span class="flex items-center gap-xs text-label-md font-label-md text-on-surface/70">
+                <span class="material-symbols-outlined text-sm text-primary">menu_book</span>
+                {{ department.subject_count|default:"0" }} Subjects
+            </span>
+            <span class="flex items-center gap-xs text-label-md font-label-md text-on-surface/70">
+                <span class="material-symbols-outlined text-sm text-warning">star</span>
+                {{ department.total_credits|default:"0" }} Credits
+            </span>
+        </div>
+
+        <!-- Action -->
+        <div class="mt-auto pt-md flex items-center justify-between text-primary text-label-md font-label-md group-hover:translate-x-1 transition-transform">
+            <span>View Subjects</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </div>
+    </a>
+    {% empty %}
+    <div class="md:col-span-2 lg:col-span-3 card-shadow bg-surface-container rounded-xl p-xl border border-outline-variant/30 text-center">
+        <div class="flex flex-col items-center gap-sm">
+            <div class="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-4xl">business</span>
+            </div>
+            <div class="text-headline-md font-headline-md text-on-surface">No departments found</div>
+            <p class="text-body-md text-on-surface/60">Add a department first, then subjects can be grouped here.</p>
+            <a href="{% url 'add_department' %}" class="mt-sm px-6 py-3 bg-primary-container text-on-primary rounded-xl font-bold hover:opacity-90 transition-all">
+                <span class="material-symbols-outlined align-middle mr-1">add_business</span>
+                Add Department
+            </a>
+        </div>
     </div>
-
-</div>
+    {% endfor %}
+</section>
 
 {% endblock %}
